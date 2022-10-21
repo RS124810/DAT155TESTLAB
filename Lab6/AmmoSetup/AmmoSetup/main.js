@@ -134,7 +134,7 @@ function setupCube() {
     boxRigidBody.setFriction(0.5);
     physicsWorld.addRigidBody(boxRigidBody);
 
-    //work
+
     dynamicObjects.push(cube); //keep in dynamic objects array
     cube.castShadow = true;
     scene.add(cube);

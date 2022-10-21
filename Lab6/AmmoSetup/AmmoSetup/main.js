@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-
+import * as LOADER from 'Loader';
 import  * as Controls from 'Control';
 
 
@@ -15,6 +15,7 @@ let tmpQuaternion;
 let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
+const loader = new LOADER.GLTFLoader();
 
 let time = 0;
 let objectTimePeriod = 0.2;
@@ -38,6 +39,7 @@ export function start() {
 
 function setupGraphics() {
     scene = new THREE.Scene();
+
     scene.background = new THREE.Color( 0x565656 );
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     renderer = new THREE.WebGLRenderer();
@@ -101,44 +103,69 @@ function setupCube() {
     //CUBE
     let size =(Math.ceil( Math.random() * 4 ))*0.5;
     let hafeSize = size *0.5;
-
     //THREE
-    const cubeGeometry = new THREE.BoxGeometry(size, size, size);
-    const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
-    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+    //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
+    loader.load(
+        // resource URL
+        '../three/build/models/Dat155Rock.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+       const cube = gltf.scene.children[0];
+        console.log(cube);
+        cube.scale.set(size, size, size);
+            //AMMO
+            let mass = size*100;
+            let boxPos = {x: -24, y: 74, z: 0};
+            let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
-    //AMMO
-    let mass = size*100;
-    let boxPos = {x: -24, y: 74, z: 0};
-    let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(boxPos.x, boxPos.y, boxPos.z));
-    transform.setRotation(new Ammo.btQuaternion(boxQuat.x, boxQuat.y, boxQuat.z, boxQuat.w));
-    let motionState = new Ammo.btDefaultMotionState(transform);
-    let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(hafeSize, hafeSize, hafeSize));
+            let transform = new Ammo.btTransform();
+            transform.setIdentity();
+            transform.setOrigin(new Ammo.btVector3(boxPos.x, boxPos.y, boxPos.z));
+            transform.setRotation(new Ammo.btQuaternion(boxQuat.x, boxQuat.y, boxQuat.z, boxQuat.w));
+            let motionState = new Ammo.btDefaultMotionState(transform);
+            let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(hafeSize, hafeSize, hafeSize));
 
-    boxShape.setMargin(0.05);
-    let localInertia = new Ammo.btVector3(0, 0, 0);
-    boxShape.calculateLocalInertia(mass, localInertia);
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, boxShape, localInertia);
-    /*
-    let boxRigidBody = new Ammo.btRigidBody(rbInfo);
-    boxRigidBody.setRestitution(0.1);
-    boxRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(boxRigidBody, colGroupCube, colGroupGround);
-    */
-    let boxRigidBody = new Ammo.btRigidBody (rbInfo);
-    boxRigidBody.setRestitution(0.1);
-    boxRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(boxRigidBody);
+            boxShape.setMargin(0.05);
+            let localInertia = new Ammo.btVector3(0, 0, 0);
+            boxShape.calculateLocalInertia(mass, localInertia);
+            let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, boxShape, localInertia);
+            /*
+            let boxRigidBody = new Ammo.btRigidBody(rbInfo);
+            boxRigidBody.setRestitution(0.1);
+            boxRigidBody.setFriction(0.5);
+            physicsWorld.addRigidBody(boxRigidBody, colGroupCube, colGroupGround);
+            */
+            let boxRigidBody = new Ammo.btRigidBody (rbInfo);
+            boxRigidBody.setRestitution(0.1);
+            boxRigidBody.setFriction(0.5);
+            physicsWorld.addRigidBody(boxRigidBody);
 
-    //work
-    dynamicObjects.push(cube); //keep in dynamic objects array
-    cube.castShadow = true;
-    scene.add(cube);
-    cube.userData.physicsBody = boxRigidBody;
+            //work
+            dynamicObjects.push(cube); //keep in dynamic objects array
+            cube.castShadow = true;
+            scene.add(cube);
+            cube.userData.physicsBody = boxRigidBody;
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
+        }
+    );
+   // const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
+   // const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+
 
 }
 
@@ -151,6 +178,8 @@ function setupSphere() {
     const sphereGeometry = new THREE.SphereGeometry(size);
     const sphereMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
     const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    console.log(sphere);
 
     //AMMO
     let mass = size*10;
@@ -293,7 +322,7 @@ function animate() {
 
     if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
         setupCube();
-        setupSphere();
+       // setupSphere();
         timeNextSpawn = time + objectTimePeriod;
     }
     updatePhysics(deltaTime);

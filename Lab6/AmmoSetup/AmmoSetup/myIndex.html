@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ammo Setup</title>
+  <style>
+    body { margin: 0; }
+
+     .button {
+         border: none;
+         color: black;
+         padding: 10px 24px;
+         text-align: center;
+         text-decoration: none;
+         display: inline-block;
+         font-size: 16px;
+         cursor: pointer;
+     }
+
+    .Styled {
+        background-color: #FF0000;
+        border: 2px solid #000000;
+        box-shadow: inset -2px -2px 3px rgba(255, 255, 255, .6),
+        inset 2px 2px 3px rgba(0, 0, 0, .6);
+    }
+    .Styled:hover {
+        background-color: #8B0000;
+        color: black;
+    }
+    .text-center {
+        text-align: center;
+    }
+  </style>
+</head>
+<body style="background-color:#565656;">
+<div class="text-center">
+    <button id="1" class="button Styled">
+        <b>DONT push this button</b>
+    </button>
+</div>
+<script type="importmap">
+			{
+				"imports": {
+					"three": "../three/build/three.module.js",
+					"Control": "../three/build/OrbitControls.js"
+
+				}
+			}
+		</script>
+
+<script src="../ammo/ammo.js"></script>
+<script type="module">
+  'use strict';
+  import {start} from "./main.js";
+  import {activate} from "./main.js";
+  await Ammo();
+  start();
+
+  let danger = document.getElementById("1");
+
+  danger.onclick = function (){
+      activate();
+  }
+
+</script>
+</body>
+</html>

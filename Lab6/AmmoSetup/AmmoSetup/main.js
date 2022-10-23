@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import * as VR from 'vrButton';
+import * as Controls from 'Control';
 
-import  * as Controls from 'Control';
+import {VRButton} from '../three/build/VRButton.js';
 
 
 let scene;
@@ -45,10 +47,23 @@ function setupGraphics() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
     renderer.setSize(window.innerWidth - 10, window.innerHeight - 10);
     document.body.appendChild(renderer.domElement);
+
+    document.body.append(VRButton.createButton(renderer));
+    renderer.xr.enabled = true;
+    //OrbitControl start poss
     camera.position.z = 0;
     camera.position.y = -9;
     camera.position.x = 50;
-  //camera.lookAt(15, 40, 0);
+
+    //this part can be used to set a suitable VR camera start pos
+    const cameraGroup = new THREE.Group();
+    cameraGroup.position.set(55, -11, 0);
+    cameraGroup.rotation.y = -4.715;
+
+    renderer.xr.addEventListener('sessionstart', function () {
+        scene.add(cameraGroup);
+        cameraGroup.add(camera);
+    });
 }
 
 function setupControls(){
@@ -288,18 +303,21 @@ function updatePhysics(deltaTime) {
 
 function animate() {
 
-    requestAnimationFrame(animate);
-    let deltaTime = clock.getDelta();
+    //requestAnimationFrame(animate);
+    renderer.setAnimationLoop( function () {
 
-    if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
-        setupCube();
-        setupSphere();
-        timeNextSpawn = time + objectTimePeriod;
-    }
-    updatePhysics(deltaTime);
-    time += deltaTime;
+        renderer.render( scene, camera );
+        let deltaTime = clock.getDelta();
 
-    control.update( deltaTime);
+        if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
+            setupCube();
+            setupSphere();
+            timeNextSpawn = time + objectTimePeriod;
+        }
 
-    renderer.render(scene, camera);
+        updatePhysics(deltaTime);
+        time += deltaTime;
+        control.update( deltaTime);
+    // renderer.render(scene, camera);
+    });
 }

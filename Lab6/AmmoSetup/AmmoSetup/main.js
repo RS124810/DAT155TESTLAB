@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import * as VR from 'vrButton';
+import * as VRBuild from 'vrButton';
 import * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
@@ -318,6 +318,5 @@ function animate() {
         updatePhysics(deltaTime);
         time += deltaTime;
         control.update( deltaTime);
-    // renderer.render(scene, camera);
     });
 }

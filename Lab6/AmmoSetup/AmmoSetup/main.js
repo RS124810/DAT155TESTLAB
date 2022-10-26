@@ -60,6 +60,10 @@ function setupControls(){
 }
 
 function setupLights() {
+    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+    hemiLight.position.set( 0, 300, 0 );
+    scene.add( hemiLight );
+
     let light = new THREE.DirectionalLight( 0xFFFFFF );
     scene.add( light );
     light.position.set(-10, 100, -50);
@@ -110,7 +114,7 @@ function setupCube() {
         '../three/build/models/Rock3LowPolyCentered.glb',
         // called when the resource is loaded
         function ( gltf ) {
-       const cube = gltf.scene;
+       const cube = gltf.scene.children[0];
         console.log(cube);
         cube.scale.set(size, size, size);
             //AMMO

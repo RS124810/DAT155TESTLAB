@@ -107,10 +107,10 @@ function setupCube() {
     //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
     loader.load(
         // resource URL
-        '../three/build/models/Dat155Rock.glb',
+        '../three/build/models/Rock3LowPolyCentered.glb',
         // called when the resource is loaded
         function ( gltf ) {
-       const cube = gltf.scene.children[0];
+       const cube = gltf.scene;
         console.log(cube);
         cube.scale.set(size, size, size);
             //AMMO

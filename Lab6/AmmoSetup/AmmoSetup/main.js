@@ -337,18 +337,18 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        renderer.render( scene, camera );
+        renderer.render(scene, camera);
         let deltaTime = clock.getDelta();
 
-    if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
-        setupCube();
-       // setupSphere();
-        timeNextSpawn = time + objectTimePeriod;
-    }
-    updatePhysics(deltaTime);
-    time += deltaTime;
+        if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
+            setupCube();
+            // setupSphere();
+            timeNextSpawn = time + objectTimePeriod;
+        }
+        updatePhysics(deltaTime);
+        time += deltaTime;
 
-    control.update( deltaTime);
+        control.update(deltaTime);
 
-    renderer.render(scene, camera);
+    });
 }

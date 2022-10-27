@@ -58,7 +58,7 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(50, -10.5, 0);
+    cameraGroup.position.set(50, -10, 0);
     cameraGroup.rotation.y = -4.715;
 
     renderer.xr.addEventListener('sessionstart', function () {
@@ -119,8 +119,8 @@ export function activate(){
 function setupCube() {
 
     //CUBE
-    let size =(Math.ceil( Math.random() * 4 ))*0.5;
-    let hafeSize = size *0.5;
+    let size =(Math.ceil( Math.random() * 4 ))*0.2;
+    let hafeSize = size*2; //addjusting rigidbody to better fit real rock
 
     //THREE
     //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
@@ -134,7 +134,7 @@ function setupCube() {
         cube.scale.set(size, size, size);
             //AMMO
             let mass = size*100;
-            let boxPos = {x: -24, y: 74, z: 0};
+            let boxPos = {x: -24, y: 90, z: 0};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
 
@@ -337,7 +337,6 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        renderer.render(scene, camera);
         let deltaTime = clock.getDelta();
 
         if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
@@ -348,5 +347,22 @@ function animate() {
         updatePhysics(deltaTime);
         time += deltaTime;
         control.update(deltaTime);
+        renderer.render(scene, camera);
     });
 }
+/*
+requestAnimationFrame(animate);
+    let deltaTime = clock.getDelta();
+
+    if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
+        setupCube();
+       // setupSphere();
+        timeNextSpawn = time + objectTimePeriod;
+    }
+    updatePhysics(deltaTime);
+    time += deltaTime;
+
+    control.update( deltaTime);
+
+    renderer.render(scene, camera);
+ */

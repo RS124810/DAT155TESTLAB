@@ -20,9 +20,9 @@ let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
 
 let time = 0;
-let objectTimePeriod = 0.2;
+let objectTimePeriod = 0.4;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 200;
+const maxNumObjects = 100;
 
 let control;
 let startAvalanche = false;
@@ -130,7 +130,7 @@ function setupCube() {
         // called when the resource is loaded
         function ( gltf ) {
        const cube = gltf.scene.children[0];
-        console.log(cube);
+        //console.log(cube);
         cube.scale.set(size, size, size);
             //AMMO
             let mass = size*100;
@@ -162,7 +162,7 @@ function setupCube() {
 
             //work
             dynamicObjects.push(cube); //keep in dynamic objects array
-            cube.castShadow = true;
+            cube.castShadow = false;
             scene.add(cube);
             cube.userData.physicsBody = boxRigidBody;
 
@@ -221,7 +221,7 @@ function setupSphere() {
     physicsWorld.addRigidBody(sphereRigidBody);
 
     //work
-    sphere.castShadow = true;
+    sphere.castShadow = false;
     dynamicObjects.push(sphere); //keep in dynamic objects array
     scene.add(sphere);
     sphere.userData.physicsBody = sphereRigidBody;
@@ -256,7 +256,7 @@ function setupGround(){
     const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
     const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
     const ground = new THREE.Mesh( groundGeometry, groundMaterial );
-    ground.receiveShadow = true;
+    ground.receiveShadow = false;
     //cube.position.y = 5;
     staticObjects.push(ground);
     scene.add( ground );
@@ -292,7 +292,7 @@ function setupGround2(){
     const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x006400 } );
     const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 
-    ground.receiveShadow = true;
+    ground.receiveShadow = false;
 
     //cube.position.y = 5;
     staticObjects.push(ground);
@@ -347,8 +347,6 @@ function animate() {
         }
         updatePhysics(deltaTime);
         time += deltaTime;
-
         control.update(deltaTime);
-
     });
 }

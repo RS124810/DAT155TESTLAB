@@ -119,7 +119,7 @@ export function activate(){
 function setupCube() {
 
     //CUBE
-    let size =(Math.ceil( Math.random() * 4 ))*0.2;
+    let size =(Math.ceil( Math.random() * 4 ))*0.2; // 0,2 scaled down rock size
     let hafeSize = size*2; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -130,11 +130,12 @@ function setupCube() {
         // called when the resource is loaded
         function ( gltf ) {
        const cube = gltf.scene.children[0];
+
         //console.log(cube);
         cube.scale.set(size, size, size);
             //AMMO
             let mass = size*100;
-            let boxPos = {x: -24, y: 90, z: 0};
+            let boxPos = {x: -24, y: 90, z: Math.random() * 60 - 30};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
 

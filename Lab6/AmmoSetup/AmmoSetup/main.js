@@ -18,6 +18,7 @@ let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
+let Rock;
 
 let time = 0;
 let objectTimePeriod = 0.4;
@@ -35,6 +36,7 @@ export function start() {
     setupGround();
     setupGround2();
     setupControls();
+    loadRock();
     animate();
 
 }
@@ -116,6 +118,31 @@ export function activate(){
     console.log("Run");
 }
 
+function loadRock()
+{
+    loader.load(
+        // resource URL
+        '../three/build/models/Rock3LowPolyCentered.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            Rock = gltf.scene.children[0];
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
+        }
+    );
+}
+
 function setupCube() {
 
     //CUBE
@@ -124,15 +151,10 @@ function setupCube() {
 
     //THREE
     //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
-    loader.load(
-        // resource URL
-        '../three/build/models/Rock3LowPolyCentered.glb',
-        // called when the resource is loaded
-        function ( gltf ) {
-       const cube = gltf.scene.children[0];
-
-        //console.log(cube);
-        cube.scale.set(size, size, size);
+    console.log(Rock);
+    let Rocks = new THREE.Object3D();
+    Rocks = Rock;
+        Rocks.scale.set(size, size, size);
             //AMMO
             let mass = size*100;
             let boxPos = {x: -24, y: 90, z: Math.random() * 60 - 30};
@@ -162,26 +184,10 @@ function setupCube() {
             physicsWorld.addRigidBody(boxRigidBody);
 
             //work
-            dynamicObjects.push(cube); //keep in dynamic objects array
-            cube.castShadow = false;
-            scene.add(cube);
-            cube.userData.physicsBody = boxRigidBody;
-
-
-        },
-        // called while loading is progressing
-        function ( xhr ) {
-
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-        },
-        // called when loading has errors
-        function ( error ) {
-
-            console.log( 'An error happened' );
-
-        }
-    );
+            dynamicObjects.push(Rocks); //keep in dynamic objects array
+            Rocks.castShadow = false;
+            scene.add(Rocks);
+            Rocks.userData.physicsBody = boxRigidBody;
    // const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
    // const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 

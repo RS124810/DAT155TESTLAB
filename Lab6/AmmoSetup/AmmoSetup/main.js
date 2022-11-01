@@ -79,6 +79,7 @@ function setupLights() {
     scene.add( hemiLight );
 
     let light = new THREE.DirectionalLight( 0xFFFFFF );
+
     scene.add( light );
     light.position.set(-10, 100, -50);
     light.castShadow = true;

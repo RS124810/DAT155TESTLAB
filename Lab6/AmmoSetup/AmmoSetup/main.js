@@ -301,17 +301,19 @@ function setupGround2(){
     scene.add( ground );
     ground.userData.physicsBody = groundRigidBody;
 }
+
+//Spawn Trees
 function Trees (){
 
     let radius = 0.3;
     let height = 10;
     //THREE
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,32,1);
-    const treeMaterial = new THREE.MeshPhongMaterial( { color: 0xFF0000 } );
+    const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 0;
-    let groundPos = {x: Math.random() * 40+10, y: -5, z: Math.random() * 100 - 50};
+    let mass = 500;
+    let groundPos = {x: Math.random() * 40+10, y: -4.5, z: Math.random() * 100 - 50};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -324,15 +326,23 @@ function Trees (){
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);
+    let treeRigidBody = new Ammo.btRigidBody (rbInfo);
+    treeRigidBody.setRestitution(0.1);
+    treeRigidBody.setFriction(0.5);
+    physicsWorld.addRigidBody(treeRigidBody);
+
+    /*
     let groundRigidBody = new Ammo.btRigidBody(rbInfo);
     groundRigidBody.setRestitution(0.1);
     groundRigidBody.setFriction(0.5);
     physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
-
-    tree.receiveShadow = false;
-    staticObjects.push(tree);
-    scene.add( tree );
     tree.userData.physicsBody = groundRigidBody;
+    */
+    tree.receiveShadow = false;
+    dynamicObjects.push(tree);
+    //staticObjects.push(tree);
+    scene.add( tree );
+    tree.userData.physicsBody = treeRigidBody;
     console.log("Tree "+ NumTrees)
 }
 

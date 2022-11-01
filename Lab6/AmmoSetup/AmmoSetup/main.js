@@ -151,7 +151,7 @@ function loadRock()
 function cloneRock() {
     for (let i=0; i<maxNumObjects; i++){
         RockMesh[i] = SkeletonUtils.clone(Rock);
-        console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );s
+        console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
     }
 }
 

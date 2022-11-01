@@ -31,6 +31,9 @@ const maxNumObjects = 150;
 let control;
 let startAvalanche = false;
 
+const listener = new THREE.AudioListener();
+const audioLoader = new THREE.AudioLoader();
+
 export function start() {
 
     setupGraphics();
@@ -60,6 +63,7 @@ function setupGraphics() {
     camera.position.z = 0;
     camera.position.y = -9;
     camera.position.x = 50;
+    camera.add(listener);
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
@@ -116,11 +120,29 @@ function setupPhysics() {
     physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     physicsWorld.setGravity(new Ammo.btVector3(0, gravity, 0));
 }
+//Fade sound inn
+function SetSound(counter) {
+
+    if (counter<40){
+        listener.setMasterVolume(counter/40);
+        console.log(listener.getMasterVolume());
+    }
+}
 
 export function activate(){
-    startAvalanche = true;
-    cloneRock();
-    console.log("Run");
+    if (!startAvalanche) {
+        startAvalanche = true;
+        cloneRock();
+        console.log("Run");
+
+        const AvalanceAudio = new THREE.Audio(listener);
+        audioLoader.load('../three/build/Audio/earth-rumble.mp3', function ( buffer ) {
+            AvalanceAudio.setBuffer( buffer );
+            AvalanceAudio.setLoop(false);
+            AvalanceAudio.setVolume(1); // Volume between 0 and 1!
+            AvalanceAudio.play();
+        });
+    }
 }
 
 function loadRock()
@@ -152,7 +174,7 @@ function loadRock()
 function cloneRock() {
     for (let i=0; i<maxNumObjects; i++){
         RockMesh[i] = SkeletonUtils.clone(Rock);
-        console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
+        //console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
     }
 }
 
@@ -321,6 +343,7 @@ function animate() {
         if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
             setupCube(counter);
+            SetSound(counter);
             counter++;
             timeNextSpawn = time + objectTimePeriod;
         }

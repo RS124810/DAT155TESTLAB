@@ -3,6 +3,7 @@ import * as LOADER from 'Loader';
 import  * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
+import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 
 
 let scene;
@@ -18,11 +19,14 @@ let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
+let Rock;
+let RockMesh = [];
+let counter = 0;
 
 let time = 0;
-let objectTimePeriod = 0.4;
+let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 100;
+const maxNumObjects = 150;
 
 let control;
 let startAvalanche = false;
@@ -35,6 +39,7 @@ export function start() {
     setupGround();
     setupGround2();
     setupControls();
+    loadRock();
     animate();
 
 }
@@ -114,26 +119,57 @@ function setupPhysics() {
 
 export function activate(){
     startAvalanche = true;
+    cloneRock();
     console.log("Run");
 }
 
-function setupCube() {
-
-    //CUBE
-    let size =(Math.ceil( Math.random() * 4 ))*0.2; // 0,2 scaled down rock size
-    let hafeSize = size*2; //addjusting rigidbody to better fit real rock
-
-    //THREE
-    //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
+function loadRock()
+{
     loader.load(
         // resource URL
         '../three/build/models/Rock3LowPolyCentered.glb',
         // called when the resource is loaded
         function ( gltf ) {
-       const cube = gltf.scene.children[0];
+            const model = gltf.scene;
+            Rock = model;
 
-        //console.log(cube);
-        cube.scale.set(size, size, size);
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
+        }
+    );
+}
+//note this function crashes if called before Rock is 100% loaded
+function cloneRock() {
+    for (let i=0; i<maxNumObjects; i++){
+        RockMesh[i] = SkeletonUtils.clone(Rock);
+        console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );s
+    }
+}
+
+function setupCube(counter) {
+
+    const rockNrOfSizes = 10;
+    //CUBE
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
+    let hafeSize = size*1; //addjusting rigidbody to better fit real rock
+
+    //THREE
+    //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
+
+    console.log(counter)
+    //let Rocks = new THREE.Object3D();
+    let Rocks = RockMesh[counter];
+        Rocks.scale.set(size, size, size);
             //AMMO
             let mass = size*100;
             let boxPos = {x: -24, y: 90, z: Math.random() * 60 - 30};
@@ -163,72 +199,13 @@ function setupCube() {
             physicsWorld.addRigidBody(boxRigidBody);
 
             //work
-            dynamicObjects.push(cube); //keep in dynamic objects array
-            cube.castShadow = false;
-            scene.add(cube);
-            cube.userData.physicsBody = boxRigidBody;
-
-
-        },
-        // called while loading is progressing
-        function ( xhr ) {
-
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-        },
-        // called when loading has errors
-        function ( error ) {
-
-            console.log( 'An error happened' );
-
-        }
-    );
-   // const cubeMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
-   // const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-
-
+            dynamicObjects.push(Rocks); //keep in dynamic objects array
+            Rocks.castShadow = false;
+            scene.add(Rocks);
+            Rocks.userData.physicsBody = boxRigidBody;
 
 }
 
-function setupSphere() {
-
-    //Spheres
-    let size =(Math.ceil( Math.random() * 4 ))*0.5;
-
-    //THREE
-    const sphereGeometry = new THREE.SphereGeometry(size);
-    const sphereMaterial = new THREE.MeshPhongMaterial({color: 0x565656});
-    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-
-    //AMMO
-    let mass = size*10;
-    let spherePos = {x: -24, y: 74, z: 0};
-    let sphereQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
-
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(spherePos.x, spherePos.y, spherePos.z));
-    transform.setRotation(new Ammo.btQuaternion(sphereQuat.x, sphereQuat.y, sphereQuat.z, sphereQuat.w));
-    let motionState = new Ammo.btDefaultMotionState(transform);
-    let sphereShape = new Ammo.btSphereShape(size);
-
-    sphereShape.setMargin(0.05);
-    let localInertia = new Ammo.btVector3(0, 0, 0);
-    sphereShape.calculateLocalInertia(mass, localInertia);
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, sphereShape, localInertia);
-
-    let sphereRigidBody = new Ammo.btRigidBody (rbInfo);
-    sphereRigidBody.setRestitution(0.1);
-    sphereRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(sphereRigidBody);
-
-    //work
-    sphere.castShadow = false;
-    dynamicObjects.push(sphere); //keep in dynamic objects array
-    scene.add(sphere);
-    sphere.userData.physicsBody = sphereRigidBody;
-
-}
 function setupGround(){
 
     //GROUND
@@ -342,8 +319,9 @@ function animate() {
         let deltaTime = clock.getDelta();
 
         if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
-            setupCube();
-            // setupSphere();
+
+            setupCube(counter);
+            counter++;
             timeNextSpawn = time + objectTimePeriod;
         }
         updatePhysics(deltaTime);

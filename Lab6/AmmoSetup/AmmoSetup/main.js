@@ -306,14 +306,14 @@ function setupGround2(){
 function Trees (){
 
     let radius = 0.3;
-    let height = 10;
+    let height = 8;
     //THREE
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,32,1);
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 500;
-    let groundPos = {x: Math.random() * 40+10, y: -4.5, z: Math.random() * 100 - 50};
+    let mass = 100;
+    let groundPos = {x: Math.random() * 40+10, y: -5.5, z: Math.random() * 100 - 50};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -328,7 +328,7 @@ function Trees (){
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);
     let treeRigidBody = new Ammo.btRigidBody (rbInfo);
     treeRigidBody.setRestitution(0.1);
-    treeRigidBody.setFriction(0.5);
+    treeRigidBody.setFriction(20);
     physicsWorld.addRigidBody(treeRigidBody);
 
     /*

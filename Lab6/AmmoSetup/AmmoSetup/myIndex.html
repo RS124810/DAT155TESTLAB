@@ -27,6 +27,16 @@
         background-color: #8B0000;
         color: black;
     }
+    .Styled2 {
+        background-color: #00FF00;
+        border: 2px solid #000000;
+        box-shadow: inset -2px -2px 3px rgba(255, 255, 255, .6),
+        inset 2px 2px 3px rgba(0, 0, 0, .6);
+    }
+    .Styled2:hover {
+        background-color: #008B00;
+        color: black;
+    }
     .text-center {
         text-align: center;
     }
@@ -36,6 +46,9 @@
 <div class="text-center">
     <button id="1" class="button Styled">
         <b>DONT push this button</b>
+    </button>
+    <button id="2" class="button Styled2">
+        <b>Spawn trees</b>
     </button>
 </div>
 <script type="importmap">
@@ -54,13 +67,19 @@
   'use strict';
   import {start} from "./main.js";
   import {activate} from "./main.js";
+  import {spawnTrees} from "./main.js";
   await Ammo();
-  start();
+  await start();
 
   let danger = document.getElementById("1");
 
   danger.onclick = function (){
       activate();
+  }
+  let trees = document.getElementById("2");
+
+  trees.onclick = function (){
+      spawnTrees();
   }
 
 </script>

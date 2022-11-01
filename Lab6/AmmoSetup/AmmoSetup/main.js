@@ -30,6 +30,9 @@ const maxNumObjects = 150;
 
 let control;
 let startAvalanche = false;
+let spwanTrees = false;
+const maxNumTrees = 10;
+let NumTrees = 0;
 
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
@@ -44,7 +47,6 @@ export function start() {
     setupControls();
     loadRock();
     animate();
-
 }
 
 function setupGraphics() {
@@ -124,7 +126,7 @@ function setupPhysics() {
 function SetSound(counter) {
 
     if (counter<40){
-        listener.setMasterVolume(counter/40);
+        listener.setMasterVolume(counter/40); //Float between 0 and 1
         console.log(listener.getMasterVolume());
     }
 }
@@ -145,6 +147,18 @@ export function activate(){
     }
 }
 
+export function spawnTrees(){
+    if (spwanTrees){
+        spwanTrees = false;
+        console.log("More trees")
+        NumTrees = 0;
+    }
+    if (!spwanTrees) {
+        spwanTrees = true;
+        console.log("Running trees");
+    }
+}
+
 function loadRock()
 {
     loader.load(
@@ -154,19 +168,14 @@ function loadRock()
         function ( gltf ) {
             const model = gltf.scene;
             Rock = model;
-
         },
         // called while loading is progressing
         function ( xhr ) {
-
             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
         },
         // called when loading has errors
         function ( error ) {
-
             console.log( 'An error happened' );
-
         }
     );
 }
@@ -209,12 +218,7 @@ function setupCube(counter) {
             let localInertia = new Ammo.btVector3(0, 0, 0);
             boxShape.calculateLocalInertia(mass, localInertia);
             let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, boxShape, localInertia);
-            /*
-            let boxRigidBody = new Ammo.btRigidBody(rbInfo);
-            boxRigidBody.setRestitution(0.1);
-            boxRigidBody.setFriction(0.5);
-            physicsWorld.addRigidBody(boxRigidBody, colGroupCube, colGroupGround);
-            */
+
             let boxRigidBody = new Ammo.btRigidBody (rbInfo);
             boxRigidBody.setRestitution(0.1);
             boxRigidBody.setFriction(0.5);
@@ -258,7 +262,6 @@ function setupGround(){
     const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
     const ground = new THREE.Mesh( groundGeometry, groundMaterial );
     ground.receiveShadow = false;
-    //cube.position.y = 5;
     staticObjects.push(ground);
     scene.add( ground );
     ground.userData.physicsBody = groundRigidBody;
@@ -294,11 +297,43 @@ function setupGround2(){
     const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 
     ground.receiveShadow = false;
-
-    //cube.position.y = 5;
     staticObjects.push(ground);
     scene.add( ground );
     ground.userData.physicsBody = groundRigidBody;
+}
+function Trees (){
+
+    let radius = 0.3;
+    let height = 10;
+    //THREE
+    const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,32,1);
+    const treeMaterial = new THREE.MeshPhongMaterial( { color: 0xFF0000 } );
+    const tree = new THREE.Mesh( treeGeometry, treeMaterial );
+
+    let mass = 0;
+    let groundPos = {x: Math.random() * 40+10, y: -5, z: Math.random() * 100 - 50};
+    let groundQuat = {x: 0, y: 0, z: 0, w: 1};
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
+    transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
+    let motionState = new Ammo.btDefaultMotionState(transform);
+    let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
+    Shape.setMargin(0.05);
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    Shape.calculateLocalInertia(mass, localInertia);
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);
+    let groundRigidBody = new Ammo.btRigidBody(rbInfo);
+    groundRigidBody.setRestitution(0.1);
+    groundRigidBody.setFriction(0.5);
+    physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
+
+    tree.receiveShadow = false;
+    staticObjects.push(tree);
+    scene.add( tree );
+    tree.userData.physicsBody = groundRigidBody;
+    console.log("Tree "+ NumTrees)
 }
 
 function updatePhysics(deltaTime) {
@@ -347,25 +382,13 @@ function animate() {
             counter++;
             timeNextSpawn = time + objectTimePeriod;
         }
+        if (spwanTrees && maxNumTrees > NumTrees ){
+            NumTrees++
+            Trees();
+        }
         updatePhysics(deltaTime);
         time += deltaTime;
         control.update(deltaTime);
         renderer.render(scene, camera);
     });
 }
-/*
-requestAnimationFrame(animate);
-    let deltaTime = clock.getDelta();
-
-    if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
-        setupCube();
-       // setupSphere();
-        timeNextSpawn = time + objectTimePeriod;
-    }
-    updatePhysics(deltaTime);
-    time += deltaTime;
-
-    control.update( deltaTime);
-
-    renderer.render(scene, camera);
- */

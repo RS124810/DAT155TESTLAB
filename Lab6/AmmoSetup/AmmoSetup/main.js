@@ -177,7 +177,7 @@ function loadRock()
         function ( gltf ) {
             const model = gltf.scene;
             //Rock = model;
-            //console.log(model.children[0].geometry);
+            console.log(model.children[0].geometry);
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
 
@@ -337,7 +337,7 @@ function Trees (){
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 100;
+    let mass = 1000;
     let groundPos = {x: Math.random() * 40+10, y: -5.5, z: Math.random() * 100 - 50};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
@@ -346,16 +346,17 @@ function Trees (){
     transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
-    let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
+    //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 4, 0.5));
     Shape.setMargin(0.2);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);
     let treeRigidBody = new Ammo.btRigidBody (rbInfo);
     treeRigidBody.setRestitution(0.1);
-    treeRigidBody.setFriction(20);
+    treeRigidBody.setFriction(0.5);
     physicsWorld.addRigidBody(treeRigidBody);
-
+    tree.userData.physicsBody = treeRigidBody;
     /*
     let groundRigidBody = new Ammo.btRigidBody(rbInfo);
     groundRigidBody.setRestitution(0.1);
@@ -367,7 +368,7 @@ function Trees (){
     dynamicObjects.push(tree);
     //staticObjects.push(tree);
     scene.add( tree );
-    tree.userData.physicsBody = treeRigidBody;
+
     console.log("Tree "+ NumTrees)
 }
 

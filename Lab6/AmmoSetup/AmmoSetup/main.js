@@ -20,6 +20,8 @@ let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
 let Rock;
+let RockGeometry;
+let RockMaterial;
 let RockMesh = [];
 let counter = 0;
 
@@ -37,6 +39,7 @@ let NumTrees = 0;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 
+//initial js load
 export function start() {
 
     setupGraphics();
@@ -49,6 +52,7 @@ export function start() {
     animate();
 }
 
+//setup graphics, scene, renderer, camera, vr
 function setupGraphics() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x565656 );
@@ -78,6 +82,7 @@ function setupGraphics() {
     });
 }
 
+//setup orbital control
 function setupControls(){
 
     control = new Controls.OrbitControls(camera, renderer.domElement );
@@ -106,6 +111,7 @@ function setupLights() {
     scene.add(ambientLight);
 }
 
+//Setup physics, collision, gravity
 function setupPhysics() {
 
     //Cant make new vectors in update physics - depletes memory
@@ -122,7 +128,7 @@ function setupPhysics() {
     physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     physicsWorld.setGravity(new Ammo.btVector3(0, gravity, 0));
 }
-//Fade sound inn
+//Fade sound inn function
 function SetSound(counter) {
 
     if (counter<40){
@@ -131,6 +137,7 @@ function SetSound(counter) {
     }
 }
 
+//Start the simulation when user press the red button
 export function activate(){
     if (!startAvalanche) {
         startAvalanche = true;
@@ -147,6 +154,7 @@ export function activate(){
     }
 }
 
+//Adds 10 trees when user press the green button
 export function spawnTrees(){
     if (spwanTrees){
         spwanTrees = false;
@@ -159,6 +167,7 @@ export function spawnTrees(){
     }
 }
 
+//Loads and build the rock model, note loader is heavy on resources
 function loadRock()
 {
     loader.load(
@@ -167,7 +176,12 @@ function loadRock()
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
-            Rock = model;
+            //Rock = model;
+            //console.log(model.children[0].geometry);
+            RockGeometry = model.children[0].geometry;
+            RockMaterial = model.children[0].material;
+
+
         },
         // called while loading is progressing
         function ( xhr ) {
@@ -179,40 +193,49 @@ function loadRock()
         }
     );
 }
+
+//Clones the rock in an array to reuse our model
 //note this function crashes if called before Rock is 100% loaded
 function cloneRock() {
     for (let i=0; i<maxNumObjects; i++){
-        RockMesh[i] = SkeletonUtils.clone(Rock);
+       // RockMesh[i] = SkeletonUtils.clone(Rock);
+        RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
+
+
         //console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
     }
 }
 
+//Builds rocks, not cubes, from the array of models and add physics to them
 function setupCube(counter) {
 
+    //nr of different rock sizes
     const rockNrOfSizes = 10;
     //CUBE
     let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
-    let hafeSize = size*1; //addjusting rigidbody to better fit real rock
+    //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
     //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
 
     console.log(counter)
     //let Rocks = new THREE.Object3D();
+
+    //picks model from array, apply scale and adds physics
     let Rocks = RockMesh[counter];
         Rocks.scale.set(size, size, size);
+
             //AMMO
             let mass = size*100;
             let boxPos = {x: -24, y: 90, z: Math.random() * 60 - 30};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
-
 
             let transform = new Ammo.btTransform();
             transform.setIdentity();
             transform.setOrigin(new Ammo.btVector3(boxPos.x, boxPos.y, boxPos.z));
             transform.setRotation(new Ammo.btQuaternion(boxQuat.x, boxQuat.y, boxQuat.z, boxQuat.w));
             let motionState = new Ammo.btDefaultMotionState(transform);
-            let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(hafeSize, hafeSize, hafeSize));
+            let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
 
             boxShape.setMargin(0.05);
             let localInertia = new Ammo.btVector3(0, 0, 0);
@@ -231,6 +254,8 @@ function setupCube(counter) {
             Rocks.userData.physicsBody = boxRigidBody;
 
 }
+
+//Setup ground
 
 function setupGround(){
 
@@ -322,7 +347,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    Shape.setMargin(0.05);
+    Shape.setMargin(0.2);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);

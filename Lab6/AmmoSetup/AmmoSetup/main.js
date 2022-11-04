@@ -4,6 +4,7 @@ import  * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
 import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
+import {getHeightmapData} from "../three/build/utils.js";
 
 
 let scene;
@@ -28,7 +29,7 @@ let counter = 0;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 50;
+const maxNumObjects = 1;
 
 let control;
 let startAvalanche = false;
@@ -39,14 +40,16 @@ let NumTrees = 0;
 const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 
+let terrainData;
+
 //initial js load
 export function start() {
 
     setupGraphics();
     setupLights();
     setupPhysics();
-    setupGround();
-    setupGround2();
+   // setupGround();
+    //setupGround2();
     setupTerrain();
     setupControls();
     loadRock();
@@ -211,7 +214,7 @@ function setupCube(counter) {
     //nr of different rock sizes
     const rockNrOfSizes = 10;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.02; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -225,7 +228,7 @@ function setupCube(counter) {
 
             //AMMO
             let mass = size*100;
-            let boxPos = {x: -24, y: 90, z: Math.random() * 60 - 30};
+            let boxPos = {x: 0, y: 30, z: 0};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
             let transform = new Ammo.btTransform();
@@ -300,21 +303,22 @@ function setupCube(counter) {
 
 //Setup ground
 
-function setupTerrain()
-{
-    class TerrainGeometry extends THREE.PlaneGeometry {
-        constructor(size, resolution, height, image) {
-            super(size, size, resolution - 1, resolution - 1);
+class TerrainGeometry extends THREE.PlaneGeometry {
+    constructor(size, resolution, height, image) {
+        super(size, size, resolution - 1, resolution - 1);
 
-            this.rotateX((Math.PI / 180) * -90);
+        this.rotateX((Math.PI / 180) * -90);
 
-            const data = getHeightmapData(image, resolution);
+        terrainData = getHeightmapData(image, resolution);
 
-            for (let i = 0; i < data.length; i++) {
-                this.attributes.position.setY(i, data[i] * height);
-            }
+        for (let i = 0; i < terrainData.length; i++) {
+            this.attributes.position.setY(i, terrainData[i] * height);
         }
     }
+}
+
+function setupTerrain()
+{
 
     const terrainImage = new Image();
     terrainImage.onload = () => {
@@ -322,35 +326,100 @@ function setupTerrain()
         const size = 128;
         const height = 5;
 
-        const geometry = new TerrainGeometry(20, 128, 5, terrainImage);
+        const geometry = new TerrainGeometry(20, 128, height, terrainImage);
 
-        const grass = new THREE.TextureLoader().load('images/grass.png');
-        const rock = new THREE.TextureLoader().load('images/rock.png');
-        const alphaMap = new THREE.TextureLoader().load('images/terrain.png');
+        const grass = new THREE.TextureLoader().load('../three/build/images/grass.png');
+        const rock = new THREE.TextureLoader().load('../three/build/images/rock.png');
+        const alphaMap = new THREE.TextureLoader().load('../three/build/images/terrain.png');
 
         grass.wrapS = THREE.RepeatWrapping;
         grass.wrapT = THREE.RepeatWrapping;
 
         grass.repeat.multiplyScalar(size / 8);
 
-        rock.wrapS = THREE.RepeatWrapping;
-        rock.wrapT = THREE.RepeatWrapping;
+        const material = new THREE.MeshStandardMaterial();
+        material.map = grass;
 
-        rock.repeat.multiplyScalar(size / 8);
+        const terrain = new THREE.Mesh(geometry, material);
 
-        const material = new TextureSplattingMaterial({
-            color: THREE.Color.NAMES.white,
-            colorMaps: [grass, rock],
-            alphaMaps: [alphaMap]
-        });
 
-        const mesh = new THREE.Mesh(geometry, material);
+        // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
+        let heightScale = 1;
 
-        scene.add(mesh);
+        // Up axis = 0 for X, 1 for Y, 2 for Z. Normally 1 = Y is used.
+        let upAxis = 1;
+
+        // hdt, height data type. "PHY_FLOAT" is used. Possible values are "PHY_FLOAT", "PHY_UCHAR", "PHY_SHORT"
+        let hdt = "PHY_FLOAT";
+
+        // Set this to your needs (inverts the triangles)
+        let flipQuadEdges = false;
+
+        // Creates height data buffer in Ammo heap
+       let ammoHeightData = Ammo._malloc( 4 * size * size );
+
+        // Copy the javascript height data array to the Ammo one.
+        let p = 0;
+        let p2 = 0;
+        for ( let j = 0; j < size; j ++ ) {
+            for ( let i = 0; i < size; i ++ ) {
+
+                // write 32-bit float data to memory
+                Ammo.HEAPF32[ammoHeightData + p2 >> 2] = terrainData[ p ];
+
+                p ++;
+
+                // 4 bytes/float
+                p2 += 4;
+            }
+        }
+        let terrainMaxHeight = height;
+        let terrainMinHeight = -2;
+
+        // Creates the heightfield physics shape
+        let heightFieldShape = new Ammo.btHeightfieldTerrainShape(
+
+            size,
+            size,
+
+            ammoHeightData,
+
+            heightScale,
+            terrainMinHeight,
+            terrainMaxHeight,
+
+            upAxis,
+            hdt,
+            flipQuadEdges
+        );
+
+        heightFieldShape.setMargin(0.2);
+
+        let groundPos = {x: 0, y: 0, z: 0};
+        let groundQuat = {x: 0, y: 0, z: 0, w: 1};
+        let mass = 0;
+
+        let transform = new Ammo.btTransform();
+        transform.setIdentity();
+        transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
+        transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
+
+        let motionState = new Ammo.btDefaultMotionState(transform);
+
+        let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, heightFieldShape, 0);
+        let terrainRigidBody = new Ammo.btRigidBody(rbInfo);
+        physicsWorld.addRigidBody(terrainRigidBody, colGroupGround, colGroupCube);
+
+        terrain.receiveShadow = false;
+
+
+        terrain.userData.physicsBody = terrainRigidBody;
+        staticObjects.push(terrain);
+        scene.add(terrain);
 
     };
 
-    terrainImage.src = 'images/terrain.png';
+    terrainImage.src = '../three/build/images/terrain.png';
 }
 
 function setupGround(){

@@ -201,8 +201,6 @@ function cloneRock() {
        // RockMesh[i] = SkeletonUtils.clone(Rock);
         RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
 
-
-        //console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
     }
 }
 
@@ -216,7 +214,6 @@ function setupCube(counter) {
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
-    //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
 
     console.log(counter)
     //let Rocks = new THREE.Object3D();
@@ -237,6 +234,10 @@ function setupCube(counter) {
             let motionState = new Ammo.btDefaultMotionState(transform);
             //let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
 
+    let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+    for (let i = 0; i < geo.length; i++){
+        geo[i] = geo[i]*(size);
+    }
 
     // new empty ammo shape
     const shape = new Ammo.btConvexHullShape();
@@ -250,7 +251,7 @@ function setupCube(counter) {
     let vectC = new Ammo.btVector3(0,0,0);
 
 //retrieve vertices positions from object
-    let verticesPos = Rocks.geometry.getAttribute('position').array;
+    let verticesPos = geo;
     let triangles = [];
     for ( let i = 0; i < verticesPos.length; i += 3 ) {
         triangles.push({ x:verticesPos[i], y:verticesPos[i+1], z:verticesPos[i+2] })
@@ -450,7 +451,7 @@ function animate() {
 
         let deltaTime = clock.getDelta();
 
-        if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
+        if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
             setupCube(counter);
             SetSound(counter);

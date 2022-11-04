@@ -28,7 +28,7 @@ let counter = 0;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 150;
+const maxNumObjects = 50;
 
 let control;
 let startAvalanche = false;
@@ -201,8 +201,6 @@ function cloneRock() {
        // RockMesh[i] = SkeletonUtils.clone(Rock);
         RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
 
-
-        //console.log("Stein nr "+ RockMesh.length + " er " +RockMesh[i] );
     }
 }
 
@@ -216,7 +214,6 @@ function setupCube(counter) {
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
-    //const cubeGeometry = new THREE.BoxGeometry(size, size, size);
 
     console.log(counter)
     //let Rocks = new THREE.Object3D();
@@ -235,12 +232,56 @@ function setupCube(counter) {
             transform.setOrigin(new Ammo.btVector3(boxPos.x, boxPos.y, boxPos.z));
             transform.setRotation(new Ammo.btQuaternion(boxQuat.x, boxQuat.y, boxQuat.z, boxQuat.w));
             let motionState = new Ammo.btDefaultMotionState(transform);
-            let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
+            //let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
 
-            boxShape.setMargin(0.05);
+    let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+    for (let i = 0; i < geo.length; i++){
+        geo[i] = geo[i]*(size);
+    }
+
+    // new empty ammo shape
+    const shape = new Ammo.btConvexHullShape();
+
+//new ammo triangles
+    let triangle, triangle_mesh = new Ammo.btTriangleMesh;
+
+//new ammo vectors
+    let vectA = new Ammo.btVector3(0,0,0);
+    let vectB = new Ammo.btVector3(0,0,0);
+    let vectC = new Ammo.btVector3(0,0,0);
+
+//retrieve vertices positions from object
+    let verticesPos = geo;
+    let triangles = [];
+    for ( let i = 0; i < verticesPos.length; i += 3 ) {
+        triangles.push({ x:verticesPos[i], y:verticesPos[i+1], z:verticesPos[i+2] })
+    }
+
+//use triangles data to draw ammo shape
+    for ( let i = 0; i < triangles.length-3; i += 3 ) {
+
+        vectA.setX(triangles[i].x);
+        vectA.setY(triangles[i].y);
+        vectA.setZ(triangles[i].z);
+        shape.addPoint(vectA,true);
+
+        vectB.setX(triangles[i+1].x);
+        vectB.setY(triangles[i+1].y);
+        vectB.setZ(triangles[i+1].z);
+        shape.addPoint(vectB,true);
+
+        vectC.setX(triangles[i+2].x);
+        vectC.setY(triangles[i+2].y);
+        vectC.setZ(triangles[i+2].z);
+        shape.addPoint(vectC,true);
+
+        triangle_mesh.addTriangle( vectA, vectB, vectC, true );
+    }
+
+            shape.setMargin(0.2);
             let localInertia = new Ammo.btVector3(0, 0, 0);
-            boxShape.calculateLocalInertia(mass, localInertia);
-            let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, boxShape, localInertia);
+            shape.calculateLocalInertia(mass, localInertia);
+            let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
 
             let boxRigidBody = new Ammo.btRigidBody (rbInfo);
             boxRigidBody.setRestitution(0.1);
@@ -411,7 +452,7 @@ function animate() {
 
         let deltaTime = clock.getDelta();
 
-        if (dynamicObjects.length < maxNumObjects && time > timeNextSpawn && startAvalanche) {
+        if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
             setupCube(counter);
             SetSound(counter);

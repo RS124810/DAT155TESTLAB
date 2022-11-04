@@ -234,6 +234,7 @@ function setupCube(counter) {
             let motionState = new Ammo.btDefaultMotionState(transform);
             //let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
 
+    //Manually scale new physic body from rocks
     let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
     for (let i = 0; i < geo.length; i++){
         geo[i] = geo[i]*(size);
@@ -278,7 +279,7 @@ function setupCube(counter) {
         triangle_mesh.addTriangle( vectA, vectB, vectC, true );
     }
 
-            shape.setMargin(0.2);
+            shape.setMargin(0.05);
             let localInertia = new Ammo.btVector3(0, 0, 0);
             shape.calculateLocalInertia(mass, localInertia);
             let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, shape, localInertia);
@@ -378,7 +379,7 @@ function Trees (){
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 1000;
+    let mass = 500;
     let groundPos = {x: Math.random() * 40+10, y: -5.5, z: Math.random() * 100 - 50};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
@@ -389,7 +390,7 @@ function Trees (){
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
     let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 4, 0.5));
-    Shape.setMargin(0.2);
+    Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, Shape, localInertia);

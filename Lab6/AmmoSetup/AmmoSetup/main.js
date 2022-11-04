@@ -25,10 +25,14 @@ let RockMaterial;
 let RockMesh = [];
 let counter = 0;
 
+let TreeGeometry;
+let TreeMaterial;
+let ThreeMesh = [];
+
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 50;
+const maxNumObjects = 80;
 
 let control;
 let startAvalanche = false;
@@ -49,6 +53,7 @@ export function start() {
     setupGround2();
     setupControls();
     loadRock();
+    loadTree();
     animate();
 }
 
@@ -92,7 +97,7 @@ function setupControls(){
 function setupLights() {
     let hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
     hemiLight.position.set( 0, 300, 0 );
-    scene.add( hemiLight );
+    //scene.add( hemiLight );
 
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
@@ -133,7 +138,7 @@ function SetSound(counter) {
 
     if (counter<40){
         listener.setMasterVolume(counter/40); //Float between 0 and 1
-        console.log(listener.getMasterVolume());
+       //console.log(listener.getMasterVolume());
     }
 }
 
@@ -172,11 +177,12 @@ function loadRock()
 {
     loader.load(
         // resource URL
-        '../three/build/models/Rock3LowPolyCentered.glb',
+        '../three/build/models/Rock2Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
             //Rock = model;
+            console.log("Stein ");
             console.log(model.children[0].geometry);
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
@@ -204,13 +210,49 @@ function cloneRock() {
     }
 }
 
+function loadTree()
+{
+    loader.load(
+        // resource URL
+        '../three/build/models/TreeTexturedComplete.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            const modeltree = gltf.scene;
+            //Rock = model;
+            console.log(modeltree.children[0].geometry);
+            TreeGeometry = modeltree.children[0].geometry;
+            TreeMaterial = modeltree.children[0].material;
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
+}
+
+//Clones the rock in an array to reuse our model
+//note this function crashes if called before Rock is 100% loaded
+function cloneTree() {
+    for (let i=0; i<maxNumTrees; i++){
+        // RockMesh[i] = SkeletonUtils.clone(Rock);
+        ThreeMesh[i] = new THREE.Mesh (TreeGeometry,TreeMaterial);
+
+    }
+}
+
 //Builds rocks, not cubes, from the array of models and add physics to them
 function setupCube(counter) {
 
     //nr of different rock sizes
     const rockNrOfSizes = 10;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.5; // 0,5 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -375,7 +417,7 @@ function Trees (){
     let radius = 0.3;
     let height = 8;
     //THREE
-    const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,32,1);
+    const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 

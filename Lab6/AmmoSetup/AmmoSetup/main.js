@@ -29,7 +29,7 @@ let counter = 0;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 1;
+const maxNumObjects = 50;
 
 let control;
 let startAvalanche = false;
@@ -70,9 +70,9 @@ function setupGraphics() {
     document.body.append(VRButton.createButton(renderer));
     renderer.xr.enabled = true;
     //OrbitControl start poss
-    camera.position.z = 0;
-    camera.position.y = -9;
-    camera.position.x = 50;
+    camera.position.z = -80;
+    camera.position.y = 40;
+    camera.position.x = 0;
     camera.add(listener);
 
     //this part can be used to set a suitable VR camera start pos
@@ -96,7 +96,7 @@ function setupControls(){
 function setupLights() {
     let hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
     hemiLight.position.set( 0, 300, 0 );
-    scene.add( hemiLight );
+    //scene.add( hemiLight );
 
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
@@ -137,7 +137,7 @@ function SetSound(counter) {
 
     if (counter<40){
         listener.setMasterVolume(counter/40); //Float between 0 and 1
-        console.log(listener.getMasterVolume());
+        //log(listener.getMasterVolume());
     }
 }
 
@@ -181,7 +181,7 @@ function loadRock()
         function ( gltf ) {
             const model = gltf.scene;
             //Rock = model;
-            console.log(model.children[0].geometry);
+            //console.log(model.children[0].geometry);
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
 
@@ -228,7 +228,7 @@ function setupCube(counter) {
 
             //AMMO
             let mass = size*100;
-            let boxPos = {x: 0, y: 30, z: 0};
+            let boxPos = {x: Math.random() * 128 - 64, y: 50, z: Math.random() * 128 - 64};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
             let transform = new Ammo.btTransform();
@@ -310,7 +310,7 @@ class TerrainGeometry extends THREE.PlaneGeometry {
         this.rotateX((Math.PI / 180) * -90);
 
         terrainData = getHeightmapData(image, resolution);
-
+        //console.log(terrainData)
         for (let i = 0; i < terrainData.length; i++) {
             this.attributes.position.setY(i, terrainData[i] * height);
         }
@@ -324,10 +324,10 @@ function setupTerrain()
     terrainImage.onload = () => {
 
         const size = 128;
-        const height = 5;
+        const height = 40;
 
-        const geometry = new TerrainGeometry(20, 128, height, terrainImage);
-
+        const geometry = new TerrainGeometry(128, 128, height, terrainImage);
+        //console.log(geometry)
         const grass = new THREE.TextureLoader().load('../three/build/images/grass.png');
         const rock = new THREE.TextureLoader().load('../three/build/images/rock.png');
         const alphaMap = new THREE.TextureLoader().load('../three/build/images/terrain.png');
@@ -373,8 +373,9 @@ function setupTerrain()
                 p2 += 4;
             }
         }
-        let terrainMaxHeight = height;
-        let terrainMinHeight = -2;
+        console.log(terrainData)
+        let terrainMaxHeight = height/2;
+        let terrainMinHeight = -height/2;
 
         // Creates the heightfield physics shape
         let heightFieldShape = new Ammo.btHeightfieldTerrainShape(
@@ -393,7 +394,9 @@ function setupTerrain()
             flipQuadEdges
         );
 
-        heightFieldShape.setMargin(0.2);
+        heightFieldShape.setLocalScaling( new Ammo.btVector3( 1, height, 1 ) ); //X,Y,Z
+
+        heightFieldShape.setMargin(0.05);
 
         let groundPos = {x: 0, y: 0, z: 0};
         let groundQuat = {x: 0, y: 0, z: 0, w: 1};
@@ -503,7 +506,7 @@ function Trees (){
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
     let mass = 500;
-    let groundPos = {x: Math.random() * 40+10, y: -5.5, z: Math.random() * 100 - 50};
+    let groundPos = {x: Math.random() * 128 - 64, y: 44, z: Math.random() * 128 - 64};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();

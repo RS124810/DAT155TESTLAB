@@ -3,8 +3,9 @@ import * as LOADER from 'Loader';
 import  * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
-import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
+//import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 import {getHeightmapData} from "../three/build/utils.js";
+import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
 
 
 let scene;
@@ -29,7 +30,7 @@ let counter = 0;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 50;
+const maxNumObjects = 80;
 
 let control;
 let startAvalanche = false;
@@ -70,9 +71,11 @@ function setupGraphics() {
     document.body.append(VRButton.createButton(renderer));
     renderer.xr.enabled = true;
     //OrbitControl start poss
-    camera.position.z = -80;
-    camera.position.y = 40;
-    camera.position.x = 0;
+    camera.position.z = 14;
+    camera.position.y = 0.9;
+    camera.position.x = -32;
+
+
     camera.add(listener);
 
     //this part can be used to set a suitable VR camera start pos
@@ -212,9 +215,9 @@ function cloneRock() {
 function setupCube(counter) {
 
     //nr of different rock sizes
-    const rockNrOfSizes = 10;
+    const rockNrOfSizes = 3;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.02; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -227,8 +230,9 @@ function setupCube(counter) {
         Rocks.scale.set(size, size, size);
 
             //AMMO
-            let mass = size*100;
-            let boxPos = {x: Math.random() * 128 - 64, y: 50, z: Math.random() * 128 - 64};
+            //Math.random() * 128 - 64
+            let mass = size*1000;
+            let boxPos = {x: Math.random() * 2  , y: 27, z: Math.random() * 1 + 3};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
             let transform = new Ammo.btTransform();
@@ -324,9 +328,10 @@ function setupTerrain()
     terrainImage.onload = () => {
 
         const size = 128;
+        const str = 128;  //32, 64, 128, 256 etc
         const height = 40;
 
-        const geometry = new TerrainGeometry(128, 128, height, terrainImage);
+        const geometry = new TerrainGeometry(size, 128, height, terrainImage);
         //console.log(geometry)
         const grass = new THREE.TextureLoader().load('../three/build/images/grass.png');
         const rock = new THREE.TextureLoader().load('../three/build/images/rock.png');
@@ -335,10 +340,21 @@ function setupTerrain()
         grass.wrapS = THREE.RepeatWrapping;
         grass.wrapT = THREE.RepeatWrapping;
 
-        grass.repeat.multiplyScalar(size / 8);
+        grass.repeat.multiplyScalar(str / 8);
 
-        const material = new THREE.MeshStandardMaterial();
-        material.map = grass;
+        rock.wrapS = THREE.RepeatWrapping;
+        rock.wrapT = THREE.RepeatWrapping;
+
+        rock.repeat.multiplyScalar(str / 8);
+
+        const material = new TextureSplattingMaterial({
+            color: THREE.Color.NAMES.white,
+            colorMaps: [grass, rock],
+            alphaMaps: [alphaMap]
+        });
+
+        //const material = new THREE.MeshStandardMaterial();
+        //material.map = grass;
 
         const terrain = new THREE.Mesh(geometry, material);
 
@@ -373,7 +389,7 @@ function setupTerrain()
                 p2 += 4;
             }
         }
-        console.log(terrainData)
+        //set max/min hight
         let terrainMaxHeight = height/2;
         let terrainMinHeight = -height/2;
 
@@ -394,6 +410,7 @@ function setupTerrain()
             flipQuadEdges
         );
 
+        //we want to scale y to our hight
         heightFieldShape.setLocalScaling( new Ammo.btVector3( 1, height, 1 ) ); //X,Y,Z
 
         heightFieldShape.setMargin(0.05);
@@ -498,15 +515,16 @@ function setupGround2(){
 //Spawn Trees
 function Trees (){
 
-    let radius = 0.3;
-    let height = 8;
+    let radius = 0.03;
+    let height = 2;
     //THREE
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,32,1);
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 500;
-    let groundPos = {x: Math.random() * 128 - 64, y: 44, z: Math.random() * 128 - 64};
+    let mass = 200;
+    //Math.random() * 128 - 64
+    let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 8 +9};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -515,7 +533,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 4, 0.5));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.2, 1, 0.2));
     Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);

@@ -53,6 +53,7 @@ export function start() {
     setupGraphics();
     setupLights();
     setupPhysics();
+    setupSkybox();
     setupTerrain();
     setupControls();
     loadRock();
@@ -138,6 +139,34 @@ function setupPhysics() {
         solver = new Ammo.btSequentialImpulseConstraintSolver();
     physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     physicsWorld.setGravity(new Ammo.btVector3(0, gravity, 0));
+}
+
+function setupSkybox() {
+    let skyboxMaterial = [];
+    //../three/build/Skybox/bluecloud_lf.jpg
+    let textFT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_ft.jpg');
+    let textBK = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_bk.jpg');
+    let textUP = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_up.jpg');
+    let textDN = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_dn.jpg');
+    let textRT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_rt.jpg');
+    let textLT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_lf.jpg');
+
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textFT}));
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textBK}));
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textUP}));
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textDN}));
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textRT}));
+    skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textLT}));
+
+    //Flip normals so we see backside
+    for (let i = 0; i<skyboxMaterial.length;i++){
+        skyboxMaterial[i].side = THREE.BackSide;
+    }
+
+    let boxGeometry = new THREE.BoxGeometry(128,128,128);
+    let skybox = new THREE.Mesh(boxGeometry, skyboxMaterial);
+
+    scene.add(skybox);
 }
 //Fade sound inn/out function
 function SetSound(counter) {
@@ -447,7 +476,7 @@ function setupTerrain()
         //we want to scale y to our hight
         heightFieldShape.setLocalScaling( new Ammo.btVector3( 1, height, 1 ) ); //X,Y,Z
 
-        heightFieldShape.setMargin(0.05);
+        heightFieldShape.setMargin(0.005);
 
         let groundPos = {x: 0, y: 0, z: 0};
         let groundQuat = {x: 0, y: 0, z: 0, w: 1};
@@ -515,14 +544,14 @@ function setupGround(){
 //Spawn Trees
 function Trees (){
 
-    let radius = 0.03;
+    let radius = 0.05;
     let height = 2;
     //THREE
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 500;
+    let mass = 1000;
     //Math.random() * 128 - 64
     let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 15 +5};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};

@@ -53,8 +53,6 @@ export function start() {
     setupGraphics();
     setupLights();
     setupPhysics();
-   // setupGround();
-    //setupGround2();
     setupTerrain();
     setupControls();
     loadRock();
@@ -75,13 +73,14 @@ function setupGraphics() {
 
     document.body.append(VRButton.createButton(renderer));
     renderer.xr.enabled = true;
-    //OrbitControl start poss
+    //OrbitControl (camera) start pos
     camera.position.z = 14;
     camera.position.y = 0.9;
     camera.position.x = -32;
 
 
     camera.add(listener);
+    listener.setMasterVolume(0);
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
@@ -140,13 +139,14 @@ function setupPhysics() {
     physicsWorld = new Ammo.btDiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
     physicsWorld.setGravity(new Ammo.btVector3(0, gravity, 0));
 }
-//Fade sound inn function
+//Fade sound inn/out function
 function SetSound(counter) {
 
-    if (counter<40){
-        listener.setMasterVolume(counter/40); //Float between 0 and 1
-        //log(listener.getMasterVolume());
-       //console.log(listener.getMasterVolume());
+    if (counter < 40 && listener.getMasterVolume() < 1){
+        listener.setMasterVolume(listener.getMasterVolume() +0.008); //Float between 0 and 1
+    }
+    if (counter >= maxNumObjects && listener.getMasterVolume() > 0){
+        listener.setMasterVolume(listener.getMasterVolume() -0.0015); //Float between 0 and 1
     }
 }
 
@@ -211,9 +211,7 @@ function loadRock()
 //note this function crashes if called before Rock is 100% loaded
 function cloneRock() {
     for (let i=0; i<maxNumObjects; i++){
-       // RockMesh[i] = SkeletonUtils.clone(Rock);
-        RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
-
+               RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
     }
 }
 
@@ -243,8 +241,8 @@ function loadTree()
     );
 }
 
-//Clones the rock in an array to reuse our model
-//note this function crashes if called before Rock is 100% loaded
+//Clones the model in an array to reuse our model
+//note this function crashes if called before model is 100% loaded
 function cloneTree() {
     for (let i=0; i<maxNumTrees; i++){
         // RockMesh[i] = SkeletonUtils.clone(Rock);
@@ -257,9 +255,9 @@ function cloneTree() {
 function setupCube(counter) {
 
     //nr of different rock sizes
-    const rockNrOfSizes = 3;
+    const rockNrOfSizes = 5;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -282,7 +280,6 @@ function setupCube(counter) {
             transform.setOrigin(new Ammo.btVector3(boxPos.x, boxPos.y, boxPos.z));
             transform.setRotation(new Ammo.btQuaternion(boxQuat.x, boxQuat.y, boxQuat.z, boxQuat.w));
             let motionState = new Ammo.btDefaultMotionState(transform);
-            //let boxShape = new Ammo.btBoxShape(new Ammo.btVector3(size, size, size));
 
     //Manually scale new physic body from rocks
     let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
@@ -356,7 +353,6 @@ class TerrainGeometry extends THREE.PlaneGeometry {
         this.rotateX((Math.PI / 180) * -90);
 
         terrainData = getHeightmapData(image, resolution);
-        //console.log(terrainData)
         for (let i = 0; i < terrainData.length; i++) {
             this.attributes.position.setY(i, terrainData[i] * height);
         }
@@ -374,7 +370,6 @@ function setupTerrain()
         const height = 40;
 
         const geometry = new TerrainGeometry(size, 128, height, terrainImage);
-        //console.log(geometry)
         const grass = new THREE.TextureLoader().load('../three/build/images/grass.png');
         const rock = new THREE.TextureLoader().load('../three/build/images/rock.png');
         const alphaMap = new THREE.TextureLoader().load('../three/build/images/terrain.png');
@@ -394,9 +389,6 @@ function setupTerrain()
             colorMaps: [grass, rock],
             alphaMaps: [alphaMap]
         });
-
-        //const material = new THREE.MeshStandardMaterial();
-        //material.map = grass;
 
         const terrain = new THREE.Mesh(geometry, material);
 
@@ -487,6 +479,10 @@ function setupTerrain()
 function setupGround(){
 
     //GROUND
+    //THREE
+    const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
+    const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
+    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 
     //AMMO
     let mass = 0;
@@ -509,50 +505,12 @@ function setupGround(){
     groundRigidBody.setFriction(0.5);
     physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
 
-    //THREE
-    const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
-    const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
-    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
     ground.receiveShadow = false;
     staticObjects.push(ground);
     scene.add( ground );
     ground.userData.physicsBody = groundRigidBody;
 }
 
-function setupGround2(){
-
-    //GROUND
-
-    //AMMO
-    let mass = 0;
-    let groundPos = {x: 47, y: -10, z: 0};
-    let groundQuat = {x: 0, y: 0, z: 0, w: 1};
-
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
-    transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
-    let motionState = new Ammo.btDefaultMotionState(transform);
-    let groundShape = new Ammo.btBoxShape(new Ammo.btVector3(40, 0.5, 100));
-    groundShape.setMargin(0.05);
-    let localInertia = new Ammo.btVector3(0, 0, 0);
-    groundShape.calculateLocalInertia(mass, localInertia);
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
-    let groundRigidBody = new Ammo.btRigidBody(rbInfo);
-    groundRigidBody.setRestitution(0.1);
-    groundRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
-
-    //THREE
-    const groundGeometry = new THREE.BoxGeometry( 80, 1, 200 );
-    const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x006400 } );
-    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
-
-    ground.receiveShadow = false;
-    staticObjects.push(ground);
-    scene.add( ground );
-    ground.userData.physicsBody = groundRigidBody;
-}
 
 //Spawn Trees
 function Trees (){
@@ -564,9 +522,9 @@ function Trees (){
     const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
-    let mass = 200;
+    let mass = 500;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 8 +9};
+    let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 15 +5};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -575,7 +533,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.2, 1, 0.2));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 1, 0.15));
     Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
@@ -642,9 +600,11 @@ function animate() {
         if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
             setupCube(counter);
-            SetSound(counter);
             counter++;
             timeNextSpawn = time + objectTimePeriod;
+        }
+        if (startAvalanche){
+            SetSound(counter);
         }
         if (spwanTrees && maxNumTrees > NumTrees ){
             NumTrees++

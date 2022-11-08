@@ -69,7 +69,7 @@ function setupGraphics() {
     renderer = new THREE.WebGLRenderer();
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
-    renderer.setSize(window.innerWidth - 10, window.innerHeight - 10);
+    renderer.setSize(window.innerWidth , window.innerHeight );
     document.body.appendChild(renderer.domElement);
 
     document.body.append(VRButton.createButton(renderer));

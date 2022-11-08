@@ -85,8 +85,8 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(50, -10, 0);
-    cameraGroup.rotation.y = -4.715;
+    cameraGroup.position.set(-30, -0.5, 15);
+    cameraGroup.rotation.y = -1.1;
 
     renderer.xr.addEventListener('sessionstart', function () {
         scene.add(cameraGroup);

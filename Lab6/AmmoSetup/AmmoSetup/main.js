@@ -144,12 +144,12 @@ function setupPhysics() {
 function setupSkybox() {
     let skyboxMaterial = [];
     //../three/build/Skybox/bluecloud_lf.jpg
-    let textFT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_ft.jpg');
-    let textBK = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_bk.jpg');
-    let textUP = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_up.jpg');
-    let textDN = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_dn.jpg');
-    let textRT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_rt.jpg');
-    let textLT = new THREE.TextureLoader().load('../three/build/Skybox/bluecloud_lf.jpg');
+    let textFT = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_ft.jpg');
+    let textBK = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_bk.jpg');
+    let textUP = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_up.jpg');
+    let textDN = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_dn.jpg');
+    let textRT = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_rt.jpg');
+    let textLT = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/Skybox/bluecloud_lf.jpg');
 
     skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textFT}));
     skyboxMaterial.push(new THREE.MeshBasicMaterial({map: textBK}));
@@ -187,7 +187,7 @@ export function activate(){
         console.log("Run");
 
         const AvalanceAudio = new THREE.Audio(listener);
-        audioLoader.load('../three/build/Audio/earth-rumble.mp3', function ( buffer ) {
+        audioLoader.load('../Lab6/AmmoSetup/three/build/Audio/earth-rumble.mp3', function ( buffer ) {
             AvalanceAudio.setBuffer( buffer );
             AvalanceAudio.setLoop(false);
             AvalanceAudio.setVolume(1); // Volume between 0 and 1!
@@ -214,7 +214,7 @@ function loadRock()
 {
     loader.load(
         // resource URL
-        '../three/build/models/Rock2Complete.glb',
+        '../Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
@@ -248,7 +248,7 @@ function loadTree()
 {
     loader.load(
         // resource URL
-        '../three/build/models/TreeTexturedComplete.glb',
+        '../Lab6/AmmoSetup/three/build/models/TreeTexturedComplete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const modeltree = gltf.scene;
@@ -399,9 +399,9 @@ function setupTerrain()
         const height = 40;
 
         const geometry = new TerrainGeometry(size, 128, height, terrainImage);
-        const grass = new THREE.TextureLoader().load('../three/build/images/grass.png');
-        const rock = new THREE.TextureLoader().load('../three/build/images/rock.png');
-        const alphaMap = new THREE.TextureLoader().load('../three/build/images/terrain.png');
+        const grass = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/grass.png');
+        const rock = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/rock.png');
+        const alphaMap = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/terrain.png');
 
         grass.wrapS = THREE.RepeatWrapping;
         grass.wrapT = THREE.RepeatWrapping;
@@ -502,7 +502,7 @@ function setupTerrain()
 
     };
 
-    terrainImage.src = '../three/build/images/terrain.png';
+    terrainImage.src = '../Lab6/AmmoSetup/three/build/images/terrain.png';
 }
 
 function setupGround(){

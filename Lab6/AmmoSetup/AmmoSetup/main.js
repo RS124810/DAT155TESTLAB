@@ -26,6 +26,9 @@ let RockGeometry;
 let RockMaterial;
 let RockMesh = [];
 let counter = 0;
+let carRigidBody;
+let carMesh;
+const STATE = { DISABLE_DEACTIVATION : 4 }
 
 let TreeGeometry;
 let TreeMaterial;
@@ -58,6 +61,8 @@ export function start() {
     setupControls();
     loadRock();
     loadTree();
+    createRoad();
+    createCar();
     animate();
 }
 
@@ -85,12 +90,13 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(-30, -0.5, 15);
-    cameraGroup.rotation.y = -1.1;
+    //cameraGroup.position.set(-30, -0.5, 15);
+    cameraGroup.rotation.y = Math.PI;
 
     renderer.xr.addEventListener('sessionstart', function () {
         scene.add(cameraGroup);
         cameraGroup.add(camera);
+        carMesh.add(cameraGroup);
     });
 }
 
@@ -219,7 +225,8 @@ function loadRock()
         function ( gltf ) {
             const model = gltf.scene;
             //Rock = model;
-            //console.log(model.children[0].geometry);
+            console.log(model)
+            console.log(model.children[0].geometry);
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
 
@@ -619,10 +626,113 @@ function updatePhysics(deltaTime) {
     }
 }
 
+function createRoad(){
+
+    //THREE.JS
+    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
+    const roadMaterial = new THREE.MeshPhongMaterial({
+        color: 0x565656
+
+        }
+    );
+    const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
+    //roadMesh.position.set(-20, 0, 0);
+    //roadMesh.rotation.y = Math.PI/2;
+    //roadMesh.rotation.x = -Math.PI/2;
+
+
+    //AMMO
+    let mass = 0;
+    let roadMeshPos = {x: -20, y: 0, z: 0};
+    let roadMeshQuat = {x: 0, y: 1, z: 0, w: 1};
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(roadMeshPos.x, roadMeshPos.y, roadMeshPos.z));
+    transform.setRotation(new Ammo.btQuaternion(roadMeshQuat.x, roadMeshQuat.y, roadMeshQuat.z, roadMeshQuat.w));
+
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let roadShape = new Ammo.btBoxShape(new Ammo.btVector3(32, 0.05, 0.5));
+    roadShape.setMargin(0.05);
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    roadShape.calculateLocalInertia(mass, localInertia);
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, roadShape, localInertia);
+    let roadRigidBody = new Ammo.btRigidBody(rbInfo);
+    roadRigidBody.setRestitution(0.1);
+    roadRigidBody.setFriction(0.5);
+    physicsWorld.addRigidBody(roadRigidBody);
+
+    roadMesh.userData.physicsBody = roadRigidBody;
+    staticObjects.push(roadMesh);
+    scene.add(roadMesh);
+
+}
+function moveCar(speed){
+
+    let impulse = new Ammo.btVector3(0, 0, speed);
+    carMesh.userData.physicsBody.setLinearVelocity(impulse);
+
+
+}
+function createCar(){
+     //THREE
+     const carGeometry = new THREE.BoxGeometry(1,1,1);
+     const carMaterial = new THREE.MeshPhongMaterial({
+         color: 0xff0000
+     });
+     carMesh = new THREE.Mesh(carGeometry, carMaterial);
+
+
+
+     //AMMO
+    let mass = 1;
+    let carMeshPos = {x: -20, y: 1, z: -20};
+    let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(carMeshPos.x, carMeshPos.y, carMeshPos.z));
+    transform.setRotation(new Ammo.btQuaternion(carMeshQuat.x, carMeshQuat.y, carMeshQuat.z, carMeshQuat.w));
+
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.5, 0.5));
+    carShape.setMargin(0.05);
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    carShape.calculateLocalInertia(mass, localInertia);
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, carShape, localInertia);
+    carRigidBody = new Ammo.btRigidBody(rbInfo);
+    carRigidBody.setRestitution(0.1);
+    carRigidBody.setFriction(0.5);
+    physicsWorld.addRigidBody(carRigidBody);
+
+
+
+    carRigidBody.setActivationState( STATE.DISABLE_DEACTIVATION );
+    carMesh.userData.physicsBody = carRigidBody;
+    console.log(carMesh.position);
+    carMesh.receiveShadow = false;
+    staticObjects.push(carMesh);
+    scene.add(carMesh);
+
+
+
+
+}
+
 function animate() {
+
 
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
+
+        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-20.5){
+            moveCar(4);
+        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5 && carMesh.position.z<15){
+            moveCar(4);
+        }
+
 
         let deltaTime = clock.getDelta();
 
@@ -644,4 +754,5 @@ function animate() {
         control.update(deltaTime);
         renderer.render(scene, camera);
     });
+
 }

@@ -627,6 +627,7 @@ function updatePhysics(deltaTime) {
 
 function createRoad(){
 
+    //THREE.JS
     const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
     const roadMaterial = new THREE.MeshPhongMaterial({
         color: 0x565656
@@ -634,9 +635,35 @@ function createRoad(){
         }
     );
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
-    roadMesh.position.set(-20, 0, 0);
-    roadMesh.rotation.y = Math.PI/2;
+    //roadMesh.position.set(-20, 0, 0);
+    //roadMesh.rotation.y = Math.PI/2;
     //roadMesh.rotation.x = -Math.PI/2;
+
+
+    //AMMO
+    let mass = 0;
+    let roadMeshPos = {x: -20, y: 0, z: 0};
+    let roadMeshQuat = {x: 0, y: 1, z: 0, w: 1};
+
+    let transform = new Ammo.btTransform();
+    transform.setIdentity();
+    transform.setOrigin(new Ammo.btVector3(roadMeshPos.x, roadMeshPos.y, roadMeshPos.z));
+    transform.setRotation(new Ammo.btQuaternion(roadMeshQuat.x, roadMeshQuat.y, roadMeshQuat.z, roadMeshQuat.w));
+
+    let motionState = new Ammo.btDefaultMotionState(transform);
+
+    let roadShape = new Ammo.btBoxShape(new Ammo.btVector3(32, 0.05, 0.5));
+    roadShape.setMargin(0.05);
+    let localInertia = new Ammo.btVector3(0, 0, 0);
+    roadShape.calculateLocalInertia(mass, localInertia);
+    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, roadShape, localInertia);
+    let roadRigidBody = new Ammo.btRigidBody(rbInfo);
+    roadRigidBody.setRestitution(0.1);
+    roadRigidBody.setFriction(0.5);
+    physicsWorld.addRigidBody(roadRigidBody);
+
+    roadMesh.userData.physicsBody = roadRigidBody;
+    staticObjects.push(roadMesh);
     scene.add(roadMesh);
 
 }
@@ -669,7 +696,7 @@ function createCar(){
 
     let motionState = new Ammo.btDefaultMotionState(transform);
 
-    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.5, 2));
+    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.5, 0.5));
     carShape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     carShape.calculateLocalInertia(mass, localInertia);
@@ -699,10 +726,10 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        if(carMesh.position.z < 1){
-            moveCar(5);
-        }else if(carMesh.position.z >=1 && carMesh.position.z <=5){
-            moveCar(3);
+        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-20.5){
+            moveCar(4);
+        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5){
+            moveCar(4);
         }
 
 

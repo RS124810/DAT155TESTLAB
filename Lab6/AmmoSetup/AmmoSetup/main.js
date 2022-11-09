@@ -3,7 +3,6 @@ import * as LOADER from 'Loader';
 import  * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
-//import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 import {getHeightmapData} from "../three/build/utils.js";
 import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
 
@@ -21,7 +20,7 @@ let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
-let Rock;
+
 let RockGeometry;
 let RockMaterial;
 let RockMesh = [];
@@ -70,7 +69,7 @@ export function start() {
 function setupGraphics() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x565656 );
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.01, 1000);
     renderer = new THREE.WebGLRenderer();
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
@@ -79,11 +78,11 @@ function setupGraphics() {
 
     document.body.append(VRButton.createButton(renderer));
     renderer.xr.enabled = true;
+
     //OrbitControl (camera) start pos
     camera.position.z = 14;
     camera.position.y = 0.9;
     camera.position.x = -32;
-
 
     camera.add(listener);
     listener.setMasterVolume(0);
@@ -108,9 +107,6 @@ function setupControls(){
 }
 
 function setupLights() {
-    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-    hemiLight.position.set( 0, 300, 0 );
-    //scene.add( hemiLight );
 
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
@@ -123,7 +119,6 @@ function setupLights() {
     light.shadow.camera.near = 0.1; // default
     light.shadow.camera.far = 1000; // default
     light.shadow.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 
     const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
     scene.add(ambientLight);
@@ -181,7 +176,7 @@ function SetSound(counter) {
         listener.setMasterVolume(listener.getMasterVolume() +0.008); //Float between 0 and 1
     }
     if (counter >= maxNumObjects && listener.getMasterVolume() > 0){
-        listener.setMasterVolume(listener.getMasterVolume() -0.0015); //Float between 0 and 1
+        listener.setMasterVolume(listener.getMasterVolume() -0.002); //Float between 0 and 1
     }
 }
 
@@ -224,9 +219,10 @@ function loadRock()
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
-            //Rock = model;
-            console.log(model)
-            console.log(model.children[0].geometry);
+
+            console.log("Rock data = ");
+            console.log(model.children[0])
+
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
 
@@ -259,8 +255,8 @@ function loadTree()
         // called when the resource is loaded
         function ( gltf ) {
             const modeltree = gltf.scene;
-            //Rock = model;
-            console.log(modeltree.children[0].geometry);
+
+            //console.log(modeltree.children[0].geometry);
             TreeGeometry = modeltree.children[0].geometry;
             TreeMaterial = modeltree.children[0].material;
 
@@ -288,7 +284,7 @@ function cloneTree() {
 }
 
 //Builds rocks, not cubes, from the array of models and add physics to them
-function setupCube(counter) {
+function setupRocks(counter) {
 
     //nr of different rock sizes
     const rockNrOfSizes = 5;
@@ -512,42 +508,6 @@ function setupTerrain()
     terrainImage.src = '../Lab6/AmmoSetup/three/build/images/terrain.png';
 }
 
-function setupGround(){
-
-    //GROUND
-    //THREE
-    const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
-    const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
-    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
-
-    //AMMO
-    let mass = 0;
-    let groundPos = {x: -10, y: 14, z: 0};
-    let groundQuat = {x: 0, y: 0, z: 2, w: 1};
-
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
-    transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
-
-    let motionState = new Ammo.btDefaultMotionState(transform);
-    let groundShape = new Ammo.btBoxShape(new Ammo.btVector3(100, 0.5, 140));
-    groundShape.setMargin(0.05);
-    let localInertia = new Ammo.btVector3(0, 0, 0);
-    groundShape.calculateLocalInertia(mass, localInertia);
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
-    let groundRigidBody = new Ammo.btRigidBody(rbInfo);
-    groundRigidBody.setRestitution(0.1);
-    groundRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
-
-    ground.receiveShadow = false;
-    staticObjects.push(ground);
-    scene.add( ground );
-    ground.userData.physicsBody = groundRigidBody;
-}
-
-
 //Spawn Trees
 function Trees (){
 
@@ -683,8 +643,6 @@ function createCar(){
      });
      carMesh = new THREE.Mesh(carGeometry, carMaterial);
 
-
-
      //AMMO
     let mass = 1;
     let carMeshPos = {x: -27, y: 1, z: -16};
@@ -711,14 +669,10 @@ function createCar(){
 
     carRigidBody.setActivationState( STATE.DISABLE_DEACTIVATION );
     carMesh.userData.physicsBody = carRigidBody;
-    console.log(carMesh.position);
+    //console.log(carMesh.position);
     carMesh.receiveShadow = false;
     staticObjects.push(carMesh);
     scene.add(carMesh);
-
-
-
-
 }
 
 function animate() {
@@ -738,7 +692,7 @@ function animate() {
 
         if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
-            setupCube(counter);
+            setupRocks(counter);
             counter++;
             timeNextSpawn = time + objectTimePeriod;
         }

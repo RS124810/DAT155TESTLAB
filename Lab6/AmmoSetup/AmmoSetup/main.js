@@ -60,7 +60,7 @@ export function start() {
     setupTerrain();
     setupControls();
     loadRock();
-    loadTree();
+    //loadTree();
     createRoad();
     createCar();
     animate();
@@ -90,7 +90,7 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    //cameraGroup.position.set(-30, -0.5, 15);
+    cameraGroup.position.set(0, -1.5, 0);
     cameraGroup.rotation.y = Math.PI;
 
     renderer.xr.addEventListener('sessionstart', function () {
@@ -560,7 +560,7 @@ function Trees (){
 
     let mass = 1000;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 15 +5};
+    let groundPos = {x: Math.random() * 8 -26, y: 1.2, z: Math.random() * 15 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -643,7 +643,7 @@ function createRoad(){
 
     //AMMO
     let mass = 0;
-    let roadMeshPos = {x: -20, y: 0, z: 0};
+    let roadMeshPos = {x: -27, y: 0, z: 0};
     let roadMeshQuat = {x: 0, y: 1, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -687,7 +687,7 @@ function createCar(){
 
      //AMMO
     let mass = 1;
-    let carMeshPos = {x: -20, y: 1, z: -20};
+    let carMeshPos = {x: -27, y: 1, z: -16};
     let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -727,9 +727,9 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-20.5){
+        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-27.5){
             moveCar(4);
-        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5 && carMesh.position.z<15){
+        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-27.5 && carMesh.position.z<21){
             moveCar(4);
         }
 

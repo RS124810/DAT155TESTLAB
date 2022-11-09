@@ -225,7 +225,8 @@ function loadRock()
         function ( gltf ) {
             const model = gltf.scene;
             //Rock = model;
-            //console.log(model.children[0].geometry);
+            console.log(model)
+            console.log(model.children[0].geometry);
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
 
@@ -728,7 +729,7 @@ function animate() {
 
         if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-20.5){
             moveCar(4);
-        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5){
+        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5 && carMesh.position.z<15){
             moveCar(4);
         }
 

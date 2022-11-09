@@ -6,7 +6,7 @@ import {VRButton} from '../three/build/VRButton.js';
 //import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 import {getHeightmapData} from "../three/build/utils.js";
 import CustomTextureSplattingMaterial from "./CustomTextureSplattingMaterial.js";
-
+import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
 
 let scene;
 let camera;
@@ -49,6 +49,7 @@ const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 
 let terrainData;
+let ctsmUniforms;
 
 //initial js load
 export function start() {
@@ -420,13 +421,15 @@ function setupTerrain()
 
         rock.repeat.multiplyScalar(str / 8);
 
-        const material = new CustomTextureSplattingMaterial({
+        let customTextureSplattingMaterial = new CustomTextureSplattingMaterial({
             color: THREE.Color.NAMES.white,
             colorMaps: [grass, rock],
             alphaMaps: [alphaMap]
         });
 
-        const terrain = new THREE.Mesh(geometry, material);
+        ctsmUniforms = customTextureSplattingMaterial.uniforms;
+
+        const terrain = new THREE.Mesh(geometry, customTextureSplattingMaterial);
 
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
@@ -733,7 +736,6 @@ function animate() {
             moveCar(4);
         }
 
-
         let deltaTime = clock.getDelta();
 
         if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
@@ -751,6 +753,10 @@ function animate() {
         }
         updatePhysics(deltaTime);
         time += deltaTime;
+        try {
+            ctsmUniforms.time.value = time;
+        } catch {}
+
         control.update(deltaTime);
         renderer.render(scene, camera);
     });

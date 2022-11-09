@@ -41,7 +41,7 @@ export default class CustomTextureSplattingMaterial extends THREE.ShaderMaterial
         roughness: { value: roughness },
         metalness: { value: metalness },
 
-        time: { value: 1.0 },
+        time: { value: 0.0 },
       },
     ]);
 
@@ -152,7 +152,7 @@ void main() {
   
   vec3 relativePos = vec3(transformed.x - cameraPosition.x, transformed.y - cameraPosition.y, transformed.z - cameraPosition.z);
   float distance = sqrt(relativePos.x * relativePos.x + relativePos.y * relativePos.y + relativePos.z * relativePos.z);
-  float timeDelta = time / 10.0;
+  float timeDelta = time / 1.0;
   
   transformed.x += distance / 10.0 * sin(sin(timeDelta / 112.90 + 1.35) * distance / 8.66 + 9.71 * sin(timeDelta / 9.13 + 1.82) + 2.91) * (0.5 + sin(timeDelta / 10.73 + 1.09) / 2.0);
   transformed.y += distance / 10.0 * sin(sin(timeDelta / 99.29 + 0.23) * distance / 11.50 + 8.38 * sin(timeDelta / 10.50 + 0.20) + 1.37) * (0.5 + sin(timeDelta / 10.41 + 0.65) / 2.0);

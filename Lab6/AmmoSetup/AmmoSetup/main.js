@@ -5,7 +5,7 @@ import  * as Controls from 'Control';
 import {VRButton} from '../three/build/VRButton.js';
 //import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 import {getHeightmapData} from "../three/build/utils.js";
-import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
+import CustomTextureSplattingMaterial from "./CustomTextureSplattingMaterial.js";
 
 
 let scene;
@@ -413,7 +413,7 @@ function setupTerrain()
 
         rock.repeat.multiplyScalar(str / 8);
 
-        const material = new TextureSplattingMaterial({
+        const material = new CustomTextureSplattingMaterial({
             color: THREE.Color.NAMES.white,
             colorMaps: [grass, rock],
             alphaMaps: [alphaMap]

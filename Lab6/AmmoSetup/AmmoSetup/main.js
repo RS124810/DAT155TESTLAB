@@ -28,6 +28,7 @@ let RockMesh = [];
 let counter = 0;
 let carRigidBody;
 let carMesh;
+const STATE = { DISABLE_DEACTIVATION : 4 }
 
 let TreeGeometry;
 let TreeMaterial;
@@ -89,12 +90,13 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(-30, -0.5, 15);
-    cameraGroup.rotation.y = -1.1;
+    //cameraGroup.position.set(-30, -0.5, 15);
+    cameraGroup.rotation.y = Math.PI;
 
     renderer.xr.addEventListener('sessionstart', function () {
         scene.add(cameraGroup);
         cameraGroup.add(camera);
+        carMesh.add(cameraGroup);
     });
 }
 
@@ -641,7 +643,7 @@ function createRoad(){
 function moveCar(speed){
 
     let impulse = new Ammo.btVector3(0, 0, speed);
-    carMesh.userData.physicsBody.applyCentralForce(impulse);
+    carMesh.userData.physicsBody.setLinearVelocity(impulse);
 
 
 }
@@ -674,12 +676,14 @@ function createCar(){
     let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, carShape, localInertia);
     carRigidBody = new Ammo.btRigidBody(rbInfo);
     carRigidBody.setRestitution(0.1);
-    carRigidBody.setFriction(0);
+    carRigidBody.setFriction(0.5);
     physicsWorld.addRigidBody(carRigidBody);
 
-    //carRigidBody.setActivationState()
 
+
+    carRigidBody.setActivationState( STATE.DISABLE_DEACTIVATION );
     carMesh.userData.physicsBody = carRigidBody;
+    console.log(carMesh.position);
     carMesh.receiveShadow = false;
     staticObjects.push(carMesh);
     scene.add(carMesh);
@@ -695,8 +699,13 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        moveCar(5);
-        //console.log(carMesh.position.z);
+        if(carMesh.position.z < 1){
+            moveCar(5);
+        }else if(carMesh.position.z >=1 && carMesh.position.z <=5){
+            moveCar(3);
+        }
+
+
         let deltaTime = clock.getDelta();
 
         if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {

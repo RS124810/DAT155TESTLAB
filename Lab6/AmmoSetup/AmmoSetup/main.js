@@ -7,6 +7,7 @@ import {VRButton} from '../three/build/VRButton.js';
 import {getHeightmapData} from "../three/build/utils.js";
 import CustomTextureSplattingMaterial from "./CustomTextureSplattingMaterial.js";
 import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
+import CustomPhongMaterial from "./CustomPhongMaterial.js";
 
 let scene;
 let camera;
@@ -49,7 +50,9 @@ const listener = new THREE.AudioListener();
 const audioLoader = new THREE.AudioLoader();
 
 let terrainData;
-let ctsmUniforms;
+
+let USE_CUSTOM_SHADERS = true;
+let timeUniforms = [];
 
 //initial js load
 export function start() {
@@ -247,6 +250,10 @@ function loadRock()
 //Clones the rock in an array to reuse our model
 //note this function crashes if called before Rock is 100% loaded
 function cloneRock() {
+    if (USE_CUSTOM_SHADERS){
+        RockMaterial = new CustomPhongMaterial({ color: 0x666666 });
+        timeUniforms.push(RockMaterial.uniforms);
+    }
     for (let i=0; i<maxNumObjects; i++){
                RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
     }
@@ -421,15 +428,23 @@ function setupTerrain()
 
         rock.repeat.multiplyScalar(str / 8);
 
-        let customTextureSplattingMaterial = new CustomTextureSplattingMaterial({
-            color: THREE.Color.NAMES.white,
-            colorMaps: [grass, rock],
-            alphaMaps: [alphaMap]
-        });
+        let textureSplattingMaterial;
+        if (USE_CUSTOM_SHADERS){
+            textureSplattingMaterial = new CustomTextureSplattingMaterial({
+                color: THREE.Color.NAMES.white,
+                colorMaps: [grass, rock],
+                alphaMaps: [alphaMap]
+            });
+            timeUniforms.push(textureSplattingMaterial.uniforms);
+        } else {
+            textureSplattingMaterial = new TextureSplattingMaterial({
+                color: THREE.Color.NAMES.white,
+                colorMaps: [grass, rock],
+                alphaMaps: [alphaMap]
+            });
+        }
 
-        ctsmUniforms = customTextureSplattingMaterial.uniforms;
-
-        const terrain = new THREE.Mesh(geometry, customTextureSplattingMaterial);
+        const terrain = new THREE.Mesh(geometry, textureSplattingMaterial);
 
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
@@ -520,7 +535,7 @@ function setupGround(){
     //GROUND
     //THREE
     const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
-    const groundMaterial = new THREE.MeshPhongMaterial( { color: 0x5C4033 } );
+    const groundMaterial = new CustomPhongMaterial( { color: 0x5C4033 } );
     const ground = new THREE.Mesh( groundGeometry, groundMaterial );
 
     //AMMO
@@ -558,7 +573,14 @@ function Trees (){
     let height = 2;
     //THREE
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
-    const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
+    let treeMaterial;
+    if (USE_CUSTOM_SHADERS) {
+        treeMaterial = new CustomPhongMaterial( { color: 0x331800  } );
+        timeUniforms.push(treeMaterial.uniforms);
+    } else {
+        treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
+    }
+
     const tree = new THREE.Mesh( treeGeometry, treeMaterial );
 
     let mass = 1000;
@@ -633,11 +655,19 @@ function createRoad(){
 
     //THREE.JS
     const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
-    const roadMaterial = new THREE.MeshPhongMaterial({
-        color: 0x565656
-
-        }
-    );
+    let roadMaterial;
+    if (USE_CUSTOM_SHADERS){
+        roadMaterial = new CustomPhongMaterial({
+                color: 0x565656
+            }
+        );
+        timeUniforms.push(roadMaterial.uniforms);
+    } else {
+        roadMaterial = new THREE.MeshPhongMaterial({
+                color: 0x565656
+            }
+        );
+    }
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
     //roadMesh.position.set(-20, 0, 0);
     //roadMesh.rotation.y = Math.PI/2;
@@ -681,9 +711,17 @@ function moveCar(speed){
 function createCar(){
      //THREE
      const carGeometry = new THREE.BoxGeometry(1,1,1);
-     const carMaterial = new THREE.MeshPhongMaterial({
-         color: 0xff0000
-     });
+     let carMaterial;
+     if (USE_CUSTOM_SHADERS){
+         carMaterial = new CustomPhongMaterial({
+             color: 0xff0000
+         });
+         timeUniforms.push(carMaterial.uniforms);
+     } else {
+         carMaterial = new THREE.MeshPhongMaterial({
+             color: 0xff0000
+         });
+     }
      carMesh = new THREE.Mesh(carGeometry, carMaterial);
 
 
@@ -751,12 +789,11 @@ function animate() {
             NumTrees++
             Trees();
         }
+        for (let i = 0; i < timeUniforms.length; i++) {
+            timeUniforms[i].time.value = time;
+        }
         updatePhysics(deltaTime);
         time += deltaTime;
-        try {
-            ctsmUniforms.time.value = time;
-        } catch {}
-
         control.update(deltaTime);
         renderer.render(scene, camera);
     });

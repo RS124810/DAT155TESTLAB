@@ -51,8 +51,14 @@ const audioLoader = new THREE.AudioLoader();
 
 let terrainData;
 
-let USE_CUSTOM_SHADERS = true;
+const USE_CUSTOM_SHADERS = true;
+const WARP_SPEED = 1.0;
+const TRANSLATION_INTENSITY = 1.0;
+const ROTATION_INTENSITY = 1.0;
+const VERTICAL_WARP = 1.0;
+const HORIZONTAL_WARP = 1.0;
 let timeUniforms = [];
+
 
 //initial js load
 export function start() {
@@ -251,7 +257,14 @@ function loadRock()
 //note this function crashes if called before Rock is 100% loaded
 function cloneRock() {
     if (USE_CUSTOM_SHADERS){
-        RockMaterial = new CustomPhongMaterial({ color: 0x666666 });
+        RockMaterial = new CustomPhongMaterial({
+            color: 0x666666,
+            warpSpeed: WARP_SPEED,
+            translationIntensity: TRANSLATION_INTENSITY,
+            rotationIntensity: ROTATION_INTENSITY,
+            verticalWarp: VERTICAL_WARP,
+            horizontalWarp: HORIZONTAL_WARP
+        });
         timeUniforms.push(RockMaterial.uniforms);
     }
     for (let i=0; i<maxNumObjects; i++){
@@ -433,7 +446,12 @@ function setupTerrain()
             textureSplattingMaterial = new CustomTextureSplattingMaterial({
                 color: THREE.Color.NAMES.white,
                 colorMaps: [grass, rock],
-                alphaMaps: [alphaMap]
+                alphaMaps: [alphaMap],
+                warpSpeed: WARP_SPEED,
+                translationIntensity: TRANSLATION_INTENSITY,
+                rotationIntensity: ROTATION_INTENSITY,
+                verticalWarp: VERTICAL_WARP,
+                horizontalWarp: HORIZONTAL_WARP
             });
             timeUniforms.push(textureSplattingMaterial.uniforms);
         } else {
@@ -575,7 +593,14 @@ function Trees (){
     const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
     let treeMaterial;
     if (USE_CUSTOM_SHADERS) {
-        treeMaterial = new CustomPhongMaterial( { color: 0x331800  } );
+        treeMaterial = new CustomPhongMaterial( {
+            color: 0x331800,
+            warpSpeed: WARP_SPEED,
+            translationIntensity: TRANSLATION_INTENSITY,
+            rotationIntensity: ROTATION_INTENSITY,
+            verticalWarp: VERTICAL_WARP,
+            horizontalWarp: HORIZONTAL_WARP
+        } );
         timeUniforms.push(treeMaterial.uniforms);
     } else {
         treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
@@ -658,9 +683,13 @@ function createRoad(){
     let roadMaterial;
     if (USE_CUSTOM_SHADERS){
         roadMaterial = new CustomPhongMaterial({
-                color: 0x565656
-            }
-        );
+            color: 0x565656,
+            warpSpeed: WARP_SPEED,
+            translationIntensity: TRANSLATION_INTENSITY,
+            rotationIntensity: ROTATION_INTENSITY,
+            verticalWarp: VERTICAL_WARP,
+            horizontalWarp: HORIZONTAL_WARP
+        });
         timeUniforms.push(roadMaterial.uniforms);
     } else {
         roadMaterial = new THREE.MeshPhongMaterial({
@@ -714,7 +743,12 @@ function createCar(){
      let carMaterial;
      if (USE_CUSTOM_SHADERS){
          carMaterial = new CustomPhongMaterial({
-             color: 0xff0000
+             color: 0xff0000,
+             warpSpeed: WARP_SPEED,
+             translationIntensity: TRANSLATION_INTENSITY,
+             rotationIntensity: ROTATION_INTENSITY,
+             verticalWarp: VERTICAL_WARP,
+             horizontalWarp: HORIZONTAL_WARP
          });
          timeUniforms.push(carMaterial.uniforms);
      } else {

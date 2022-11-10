@@ -31,6 +31,8 @@ const STATE = { DISABLE_DEACTIVATION : 4 }
 
 let TreeGeometry;
 let TreeMaterial;
+let LeafGeometry;
+let LeafMaterial;
 let ThreeMesh = [];
 
 let time = 0;
@@ -59,7 +61,7 @@ export function start() {
     setupTerrain();
     setupControls();
     loadRock();
-    //loadTree();
+    loadTree();
     createRoad();
     createCar();
     animate();
@@ -215,7 +217,7 @@ function loadRock()
 {
     loader.load(
         // resource URL
-        '../Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
+        '../Lab6/AmmoSetup/three/build/models/Rock1Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
@@ -256,9 +258,11 @@ function loadTree()
         function ( gltf ) {
             const modeltree = gltf.scene;
 
-            //console.log(modeltree.children[0].geometry);
+            console.log(modeltree.children[0].children[0].geometry);
             TreeGeometry = modeltree.children[0].geometry;
             TreeMaterial = modeltree.children[0].material;
+            LeafGeometry = modeltree.children[0].children[0].geometry;
+            LeafMaterial = modeltree.children[0].children[0].material;
 
 
         },
@@ -289,7 +293,7 @@ function setupRocks(counter) {
     //nr of different rock sizes
     const rockNrOfSizes = 5;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
@@ -514,13 +518,18 @@ function Trees (){
     let radius = 0.05;
     let height = 2;
     //THREE
-    const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
-    const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
-    const tree = new THREE.Mesh( treeGeometry, treeMaterial );
+   // const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
+    //const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
+    let tree = new THREE.Group();
+
+    tree.add(new THREE.Mesh( TreeGeometry, TreeMaterial ));
+    tree.add(new THREE.Mesh( LeafGeometry, LeafMaterial ));
+    //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
+    console.log(tree);
 
     let mass = 1000;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 8 -26, y: 1.2, z: Math.random() * 15 +0};
+    let groundPos = {x: Math.random() * 8 -26, y: 0.1, z: Math.random() * 15 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -529,7 +538,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 1, 0.15));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 0.2, 0.15));
     Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);

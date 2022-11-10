@@ -23,6 +23,8 @@ const loader = new LOADER.GLTFLoader();
 
 let RockGeometry;
 let RockMaterial;
+let RockGeometry2;
+let RockMaterial2;
 let RockMesh = [];
 let counter = 0;
 let carRigidBody;
@@ -45,7 +47,7 @@ let LightMaterial;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 80;
+const maxNumObjects = 60; //even nr
 
 let control;
 let startAvalanche = false;
@@ -247,13 +249,40 @@ function loadRock()
             console.log( 'An error happened' );
         }
     );
+    loader.load(
+        // resource URL
+        '../Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            const model2 = gltf.scene;
+
+            console.log("Rock data = ");
+            console.log(model2.children[0])
+
+            RockGeometry2 = model2.children[0].geometry;
+            RockMaterial2 = model2.children[0].material;
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
 }
 
 //Clones the rock in an array to reuse our model
 //note this function crashes if called before Rock is 100% loaded
 function cloneRock() {
-    for (let i=0; i<maxNumObjects; i++){
+    for (let i=0; i<maxNumObjects; i+=2){
                RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
+    }
+    for (let i=1; i<maxNumObjects; i+=2){
+        RockMesh[i] = new THREE.Mesh (RockGeometry2,RockMaterial2);
     }
 }
 
@@ -318,37 +347,34 @@ function loadCar()
     );
 }
 
-//Clones the model in an array to reuse our model
-//note this function crashes if called before model is 100% loaded
-function cloneTree() {
-    for (let i=0; i<maxNumTrees; i++){
-        // RockMesh[i] = SkeletonUtils.clone(Rock);
-        ThreeMesh[i] = new THREE.Mesh (TreeGeometry,TreeMaterial);
-
-    }
-}
-
 //Builds rocks, not cubes, from the array of models and add physics to them
 function setupRocks(counter) {
 
     //nr of different rock sizes
     const rockNrOfSizes = 5;
+    const RockMassScaler = 3000;
     //CUBE
     let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
-
-    console.log(counter)
+    function isOdd(num) { return num % 2;}
+    //console.log(isOdd(counter))
     //let Rocks = new THREE.Object3D();
 
     //picks model from array, apply scale and adds physics
     let Rocks = RockMesh[counter];
+    //black rocks
+    if (isOdd(counter) == 0) {
         Rocks.scale.set(size, size, size);
+    }else{
+        Rocks.scale.set(size*4, size*4, size*4);
+    }
 
             //AMMO
             //Math.random() * 128 - 64
-            let mass = size*1000;
+            let mass = size*RockMassScaler;
+            console.log("Stein " + (counter+1) + " veier " + mass + " kg")
             let boxPos = {x: Math.random() * 2  , y: 27, z: Math.random() * 1 + 3};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
@@ -359,9 +385,17 @@ function setupRocks(counter) {
             let motionState = new Ammo.btDefaultMotionState(transform);
 
     //Manually scale new physic body from rocks
-    let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
-    for (let i = 0; i < geo.length; i++){
+    let geo;
+    if (isOdd(counter) == 0) {
+        geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+        for (let i = 0; i < geo.length; i++){
         geo[i] = geo[i]*(size);
+        }
+    }else{
+        geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+        for (let i = 0; i < geo.length; i++){
+            geo[i] = geo[i]*(size*4)
+        }
     }
 
     // new empty ammo shape
@@ -567,10 +601,11 @@ function Trees (){
     tree.add(new THREE.Mesh( LeafGeometry, LeafMaterial ));
     //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
     console.log(tree);
+    tree.scale.set(0.7 , 0.7, 0.7)
 
     let mass = 1000;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 8 -26, y: 0.1, z: Math.random() * 15 +0};
+    let groundPos = {x: Math.random() * 6 -26, y: 0.1, z: Math.random() * 18 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -682,6 +717,7 @@ function moveCar(speed){
 
     let impulse = new Ammo.btVector3(0, 0, speed);
     carMesh.userData.physicsBody.setLinearVelocity(impulse);
+    console.log(carMesh.position.z)
 
 
 }
@@ -700,7 +736,7 @@ function createCar(){
     //carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
 
      //AMMO
-    let mass = 1;
+    let mass = 100;
     let carMeshPos = {x: -27, y: 1, z: -16};
     let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
 
@@ -737,10 +773,10 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-27.5){
-            moveCar(4);
-        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-27.5 && carMesh.position.z<21){
-            moveCar(4);
+        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-27.1){
+            moveCar(3.8);
+        }else if(carMesh.position.z >=-21  && startAvalanche && carMesh.position.x >-27.1 && carMesh.position.z<23.8){
+            moveCar(2);
         }
 
 

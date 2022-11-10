@@ -20,6 +20,12 @@ let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
+const textureLoader = new THREE.TextureLoader();
+let roadBaseColor;
+let roadNormalMap;
+let roadDispMap;
+let roadRoughMap;
+let roadAOM;
 
 let RockGeometry;
 let RockMaterial;
@@ -69,6 +75,7 @@ export function start() {
     setupSkybox();
     setupTerrain();
     setupControls();
+    loadTexture();
     loadRock();
     loadTree();
     loadCar();
@@ -77,6 +84,33 @@ export function start() {
     animate();
 }
 
+function loadTexture() {
+    roadBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
+    roadBaseColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadBaseColor.offset.set( 0, 0 );
+    roadBaseColor.repeat.set( 64, 2 );
+
+    roadNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_NRM.jpg');
+    roadNormalMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadNormalMap.offset.set( 0, 0 );
+    roadNormalMap.repeat.set( 64, 2 );
+
+    roadDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_DISP.png');
+    roadDispMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadDispMap.offset.set( 0, 0 );
+    roadDispMap.repeat.set( 64, 2 );
+
+    roadRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_ROUGH.jpg');
+    roadRoughMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadRoughMap.offset.set( 0, 0 );
+    roadRoughMap.repeat.set( 64, 2 );
+
+    roadAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_OCC.jpg');
+    roadAOM.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadAOM.offset.set( 0, 0 );
+    roadAOM.repeat.set( 64, 2 );
+
+}
 //setup graphics, scene, renderer, camera, vr
 function setupGraphics() {
     scene = new THREE.Scene();
@@ -123,7 +157,7 @@ function setupLights() {
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
     scene.add( light );
-    light.position.set(-10, 100, -50);
+    light.position.set(-27, 100, 0);
     light.castShadow = true;
     //Set up shadow properties for the light
     light.shadow.mapSize.width = 4096; // default
@@ -605,7 +639,7 @@ function Trees (){
 
     let mass = 1000;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 6 -26, y: 0.1, z: Math.random() * 18 +0};
+    let groundPos = {x: Math.random() * 6 -26, y: 0.18, z: Math.random() * 18 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -614,7 +648,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 0.2, 0.15));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 0.25, 0.15));
     Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
@@ -674,10 +708,14 @@ function updatePhysics(deltaTime) {
 function createRoad(){
 
     //THREE.JS
-    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
-    const roadMaterial = new THREE.MeshPhongMaterial({
-        color: 0x565656
-
+    //const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
+    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 2,128,128,128);
+    const roadMaterial = new THREE.MeshStandardMaterial({
+            map: roadBaseColor,
+            normalmap: roadNormalMap,
+            displacementmap: roadDispMap,
+            roughnessMap: roadRoughMap,
+            aoMap: roadAOM
         }
     );
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);

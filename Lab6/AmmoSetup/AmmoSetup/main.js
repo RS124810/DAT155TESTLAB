@@ -35,6 +35,13 @@ let LeafGeometry;
 let LeafMaterial;
 let ThreeMesh = [];
 
+let CarGeometry
+let CarMaterial;
+let TireGeometry;
+let TireMaterial;
+let LightGeometry;
+let LightMaterial;
+
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
@@ -263,6 +270,35 @@ function loadTree()
             TreeMaterial = modeltree.children[0].material;
             LeafGeometry = modeltree.children[0].children[0].geometry;
             LeafMaterial = modeltree.children[0].children[0].material;
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
+}
+
+function loadCar()
+{
+    loader.load(
+        // resource URL
+        '../Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            const modelCar = gltf.scene;
+
+            CarGeometry = modelCar.children[0].geometry;
+            CarMaterial = modelCar.children[0].material;
+            TireGeometry = modelCar.children[1].geometry;
+            TireMaterial = modelCar.children[1].material;
+            LightGeometry = modelCar.children[2].geometry;
+            LightMaterial = modelCar.children[2].material;
 
 
         },
@@ -646,11 +682,17 @@ function moveCar(speed){
 }
 function createCar(){
      //THREE
-     const carGeometry = new THREE.BoxGeometry(1,1,1);
-     const carMaterial = new THREE.MeshPhongMaterial({
-         color: 0xff0000
-     });
-     carMesh = new THREE.Mesh(carGeometry, carMaterial);
+   //  const carGeometry = new THREE.BoxGeometry(1,1,1);
+     //const carMaterial = new THREE.MeshPhongMaterial({
+     //    color: 0xff0000
+     //});
+    // carMesh = new THREE.Mesh(carGeometry, carMaterial);
+
+    let carMesh = new THREE.Group();
+
+    carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
+    carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
+    carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
 
      //AMMO
     let mass = 1;

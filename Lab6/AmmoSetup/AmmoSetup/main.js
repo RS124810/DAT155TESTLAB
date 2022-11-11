@@ -157,7 +157,7 @@ function setupLights() {
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
     scene.add( light );
-    light.position.set(-27, 100, 0);
+    light.position.set(-27, 100, 40);
     light.castShadow = true;
     //Set up shadow properties for the light
     light.shadow.mapSize.width = 4096; // default
@@ -637,7 +637,7 @@ function Trees (){
     console.log(tree);
     tree.scale.set(0.7 , 0.7, 0.7)
 
-    let mass = 1000;
+    let mass = 2000;
     //Math.random() * 128 - 64
     let groundPos = {x: Math.random() * 6 -26, y: 0.18, z: Math.random() * 18 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
@@ -711,6 +711,7 @@ function createRoad(){
     //const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
     const roadGeometry = new THREE.BoxGeometry(64, 0.1, 2,128,128,128);
     const roadMaterial = new THREE.MeshStandardMaterial({
+            color: 0x565656,
             map: roadBaseColor,
             normalmap: roadNormalMap,
             displacementmap: roadDispMap,
@@ -718,7 +719,26 @@ function createRoad(){
             aoMap: roadAOM
         }
     );
+
+    const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
+    const roadStripMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFFFFF,
+        normalmap: roadNormalMap,
+        displacementmap: roadDispMap,
+        roughnessMap: roadRoughMap,
+        aoMap: roadAOM
+    });
+
+    const roadStripMesh = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
+    const roadStripMesh2 = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
+
+    roadStripMesh.position.set(-26.2,0.001,0);
+    roadStripMesh.rotation.y = Math.PI/2;
+    scene.add(roadStripMesh);
+    roadStripMesh2.position.set(-27.8,0.001,0);
+    roadStripMesh2.rotation.y = Math.PI/2;
+    scene.add(roadStripMesh2);
     //roadMesh.position.set(-20, 0, 0);
     //roadMesh.rotation.y = Math.PI/2;
     //roadMesh.rotation.x = -Math.PI/2;

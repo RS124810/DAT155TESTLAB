@@ -343,9 +343,13 @@ function loadRock()
 function cloneRock() {
     if (USE_CUSTOM_SHADERS){
         RockMaterial = new CustomPhongMaterial({
-            color: 0x666666,
+            color: 0x464646,
         });
         customUniforms.push(RockMaterial.uniforms);
+        RockMaterial2 = new CustomPhongMaterial({
+            color: 0x666666,
+        });
+        customUniforms.push(RockMaterial2.uniforms);
     }
     for (let i=0; i<maxNumObjects; i+=2){
                RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
@@ -369,8 +373,16 @@ function loadTree()
             TreeMaterial = modeltree.children[0].material;
             LeafGeometry = modeltree.children[0].children[0].geometry;
             LeafMaterial = modeltree.children[0].children[0].material;
-
-
+            if (USE_CUSTOM_SHADERS){
+                TreeMaterial = new CustomPhongMaterial({
+                    color: 0x261606,
+                });
+                customUniforms.push(TreeMaterial.uniforms);
+                LeafMaterial = new CustomPhongMaterial({
+                    color: 0x163616,
+                });
+                customUniforms.push(LeafMaterial.uniforms);
+            }
         },
         // called while loading is progressing
         function ( xhr ) {
@@ -380,6 +392,7 @@ function loadTree()
         function ( error ) {
             console.log( 'An error happened' );
         }
+
     );
 }
 
@@ -420,7 +433,7 @@ function loadCar()
 function setupRocks(counter) {
 
     //nr of different rock sizes
-    const rockNrOfSizes = 5;
+    const rockNrOfSizes = 10;
     const RockMassScaler = 3000;
     //CUBE
     let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
@@ -769,25 +782,38 @@ function createRoad(){
     //THREE.JS
     //const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
     const roadGeometry = new THREE.BoxGeometry(64, 0.1, 2,128,128,128);
-    const roadMaterial = new THREE.MeshStandardMaterial({
-            color: 0x565656,
-            map: roadBaseColor,
+    const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
+    let roadMaterial;
+    let roadStripMaterial;
+    if (USE_CUSTOM_SHADERS){
+        roadMaterial = new CustomPhongMaterial({
+            color: 0x262626,
+        });
+        customUniforms.push(roadMaterial.uniforms);
+        roadStripMaterial = new CustomPhongMaterial({
+            color: 0x868686,
+        });
+        customUniforms.push(roadStripMaterial.uniforms);
+    }
+    else{
+        roadMaterial = new THREE.MeshStandardMaterial({
+                color: 0x565656,
+                map: roadBaseColor,
+                normalmap: roadNormalMap,
+                displacementmap: roadDispMap,
+                roughnessMap: roadRoughMap,
+                aoMap: roadAOM
+            }
+        );
+        roadStripMaterial = new THREE.MeshStandardMaterial({
+            map: roadBaseStripColor,
+            color: 0xFFFFFF,
             normalmap: roadNormalMap,
             displacementmap: roadDispMap,
             roughnessMap: roadRoughMap,
             aoMap: roadAOM
-        }
-    );
-
-    const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
-    const roadStripMaterial = new THREE.MeshStandardMaterial({
-        map: roadBaseStripColor,
-        color: 0xFFFFFF,
-        normalmap: roadNormalMap,
-        displacementmap: roadDispMap,
-        roughnessMap: roadRoughMap,
-        aoMap: roadAOM
-    });
+        });
+    }
 
     const roadStripMesh = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadStripMesh2 = new THREE.Mesh(roadStripGeometry,roadStripMaterial)

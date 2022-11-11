@@ -26,12 +26,6 @@ export default class CustomTextureSplattingMaterial extends THREE.ShaderMaterial
 
     colorMaps = [],
     alphaMaps = [],
-
-                warpSpeed = 1.0,
-                translationIntensity = 1.0,
-                rotationIntensity = 1.0,
-                verticalWarp = 1.0,
-                horizontalWarp = 1.0,
   } = {}) {
     if (Math.max(1, colorMaps.length) !== alphaMaps.length + 1) {
       throw Error(
@@ -53,6 +47,11 @@ export default class CustomTextureSplattingMaterial extends THREE.ShaderMaterial
         metalness: { value: metalness },
 
         time: { value: 0.0 },
+        warpSpeed: { value: 1.0 },
+        translationIntensity: { value: 1.0 },
+        rotationIntensity: { value: 1.0 },
+        verticalWarp: { value: 1.0 },
+        horizontalWarp: { value: 1.0 },
       },
     ]);
 
@@ -60,6 +59,7 @@ export default class CustomTextureSplattingMaterial extends THREE.ShaderMaterial
     // The defines variables are usually used to enable/disable functionality in the glsl shaders.
     let defines = {
       STANDARD: "",
+      USE_SHEEN: "",
     };
 
     if (colorMaps.length > 0) {
@@ -96,15 +96,8 @@ export default class CustomTextureSplattingMaterial extends THREE.ShaderMaterial
       lights: true,
     });
 
-    this.warpSpeed = this.toFloatString(warpSpeed);
-    this.translationIntensity = this.toFloatString(translationIntensity);
-    this.rotationIntensity = this.toFloatString(rotationIntensity);
-    this.verticalWarp = this.toFloatString(verticalWarp);
-    this.horizontalWarp = this.toFloatString(horizontalWarp);
     this.vertexShader = this.VERTEX_SHADER();
   }
-
-  toFloatString(n) {return (Number.isInteger(n)) ? (n + ".0") : (n.toString())}
 
   VERTEX_SHADER() { return glsl`
 #define STANDARD
@@ -133,6 +126,11 @@ varying vec3 vViewPosition;
 #include <clipping_planes_pars_vertex>
 
 uniform float time;
+uniform float warpSpeed;
+uniform float translationIntensity;
+uniform float rotationIntensity;
+uniform float horizontalWarp;
+uniform float verticalWarp;
 
 void main() {
   // Custom:
@@ -153,12 +151,6 @@ void main() {
   #include <defaultnormal_vertex>
   #include <normal_vertex>
   #include <begin_vertex>
-	
-	float warpSpeed = ${this.warpSpeed};
-	float translationIntensity = ${this.translationIntensity};
-	float rotationIntensity = ${this.rotationIntensity};
-	float horizontalWarp = ${this.horizontalWarp};
-	float verticalWarp = ${this.verticalWarp};
 	
 	vec4 worldPos = vec4( transformed, 1.0 );
 	worldPos = modelMatrix * worldPos;
@@ -240,6 +232,7 @@ void main() {
   #include <clipping_planes_vertex>
   vViewPosition = - mvPosition.xyz;
   #include <worldpos_vertex>
+  #include <envmap_vertex>
   #include <shadowmap_vertex>
   #include <fog_vertex>
   #ifdef USE_TRANSMISSION

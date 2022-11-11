@@ -52,12 +52,12 @@ const audioLoader = new THREE.AudioLoader();
 let terrainData;
 
 const USE_CUSTOM_SHADERS = true;
-const WARP_SPEED = 1.0;
-const TRANSLATION_INTENSITY = 1.0;
-const ROTATION_INTENSITY = 1.0;
-const VERTICAL_WARP = 1.0;
-const HORIZONTAL_WARP = 1.0;
-let timeUniforms = [];
+let warpSpeed = 1.0;
+let translationIntensity = 1.0;
+let rotationIntensity = 1.0;
+let verticalWarp = 1.0;
+let horizontalWarp = 1.0;
+let customUniforms = [];
 
 
 //initial js load
@@ -80,7 +80,7 @@ export function start() {
 function setupGraphics() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x565656 );
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
     renderer = new THREE.WebGLRenderer();
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
@@ -126,7 +126,7 @@ function setupLights() {
 
     scene.add( light );
     light.position.set(-10, 100, -50);
-    light.castShadow = true;
+    light.castShadow = false;
     //Set up shadow properties for the light
     light.shadow.mapSize.width = 4096; // default
     light.shadow.mapSize.height = 4096; // default
@@ -179,7 +179,7 @@ function setupSkybox() {
         skyboxMaterial[i].side = THREE.BackSide;
     }
 
-    let boxGeometry = new THREE.BoxGeometry(128,128,128);
+    let boxGeometry = new THREE.BoxGeometry(65536,65536,65536);
     let skybox = new THREE.Mesh(boxGeometry, skyboxMaterial);
 
     scene.add(skybox);
@@ -259,13 +259,8 @@ function cloneRock() {
     if (USE_CUSTOM_SHADERS){
         RockMaterial = new CustomPhongMaterial({
             color: 0x666666,
-            warpSpeed: WARP_SPEED,
-            translationIntensity: TRANSLATION_INTENSITY,
-            rotationIntensity: ROTATION_INTENSITY,
-            verticalWarp: VERTICAL_WARP,
-            horizontalWarp: HORIZONTAL_WARP
         });
-        timeUniforms.push(RockMaterial.uniforms);
+        customUniforms.push(RockMaterial.uniforms);
     }
     for (let i=0; i<maxNumObjects; i++){
                RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
@@ -395,7 +390,7 @@ function setupCube(counter) {
 
             //work
             dynamicObjects.push(Rocks); //keep in dynamic objects array
-            Rocks.castShadow = false;
+            Rocks.castShadow = true;
             scene.add(Rocks);
             Rocks.userData.physicsBody = boxRigidBody;
 
@@ -427,6 +422,7 @@ function setupTerrain()
         const height = 40;
 
         const geometry = new TerrainGeometry(size, 128, height, terrainImage);
+
         const grass = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/grass.png');
         const rock = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/rock.png');
         const alphaMap = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/terrain.png');
@@ -447,13 +443,8 @@ function setupTerrain()
                 color: THREE.Color.NAMES.white,
                 colorMaps: [grass, rock],
                 alphaMaps: [alphaMap],
-                warpSpeed: WARP_SPEED,
-                translationIntensity: TRANSLATION_INTENSITY,
-                rotationIntensity: ROTATION_INTENSITY,
-                verticalWarp: VERTICAL_WARP,
-                horizontalWarp: HORIZONTAL_WARP
             });
-            timeUniforms.push(textureSplattingMaterial.uniforms);
+            customUniforms.push(textureSplattingMaterial.uniforms);
         } else {
             textureSplattingMaterial = new TextureSplattingMaterial({
                 color: THREE.Color.NAMES.white,
@@ -463,7 +454,6 @@ function setupTerrain()
         }
 
         const terrain = new THREE.Mesh(geometry, textureSplattingMaterial);
-
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
         let heightScale = 1;
@@ -536,7 +526,7 @@ function setupTerrain()
         let terrainRigidBody = new Ammo.btRigidBody(rbInfo);
         physicsWorld.addRigidBody(terrainRigidBody, colGroupGround, colGroupCube);
 
-        terrain.receiveShadow = false;
+        terrain.receiveShadow = true;
 
 
         terrain.userData.physicsBody = terrainRigidBody;
@@ -595,13 +585,8 @@ function Trees (){
     if (USE_CUSTOM_SHADERS) {
         treeMaterial = new CustomPhongMaterial( {
             color: 0x331800,
-            warpSpeed: WARP_SPEED,
-            translationIntensity: TRANSLATION_INTENSITY,
-            rotationIntensity: ROTATION_INTENSITY,
-            verticalWarp: VERTICAL_WARP,
-            horizontalWarp: HORIZONTAL_WARP
         } );
-        timeUniforms.push(treeMaterial.uniforms);
+        customUniforms.push(treeMaterial.uniforms);
     } else {
         treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     }
@@ -636,7 +621,7 @@ function Trees (){
     physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
     tree.userData.physicsBody = groundRigidBody;
     */
-    tree.receiveShadow = false;
+    tree.castShadow = true;
     dynamicObjects.push(tree);
     //staticObjects.push(tree);
     scene.add( tree );
@@ -679,18 +664,13 @@ function updatePhysics(deltaTime) {
 function createRoad(){
 
     //THREE.JS
-    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
+    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1, 1000, 1000, 1000);
     let roadMaterial;
     if (USE_CUSTOM_SHADERS){
         roadMaterial = new CustomPhongMaterial({
             color: 0x565656,
-            warpSpeed: WARP_SPEED,
-            translationIntensity: TRANSLATION_INTENSITY,
-            rotationIntensity: ROTATION_INTENSITY,
-            verticalWarp: VERTICAL_WARP,
-            horizontalWarp: HORIZONTAL_WARP
         });
-        timeUniforms.push(roadMaterial.uniforms);
+        customUniforms.push(roadMaterial.uniforms);
     } else {
         roadMaterial = new THREE.MeshPhongMaterial({
                 color: 0x565656
@@ -744,13 +724,8 @@ function createCar(){
      if (USE_CUSTOM_SHADERS){
          carMaterial = new CustomPhongMaterial({
              color: 0xff0000,
-             warpSpeed: WARP_SPEED,
-             translationIntensity: TRANSLATION_INTENSITY,
-             rotationIntensity: ROTATION_INTENSITY,
-             verticalWarp: VERTICAL_WARP,
-             horizontalWarp: HORIZONTAL_WARP
          });
-         timeUniforms.push(carMaterial.uniforms);
+         customUniforms.push(carMaterial.uniforms);
      } else {
          carMaterial = new THREE.MeshPhongMaterial({
              color: 0xff0000
@@ -823,8 +798,13 @@ function animate() {
             NumTrees++
             Trees();
         }
-        for (let i = 0; i < timeUniforms.length; i++) {
-            timeUniforms[i].time.value = time;
+        for (let i = 0; i < customUniforms.length; i++) {
+            customUniforms[i].time.value = time;
+            customUniforms[i].warpSpeed.value = warpSpeed;
+            customUniforms[i].translationIntensity.value = translationIntensity;
+            customUniforms[i].rotationIntensity.value = rotationIntensity;
+            customUniforms[i].verticalWarp.value = verticalWarp;
+            customUniforms[i].horizontalWarp.value = horizontalWarp;
         }
         updatePhysics(deltaTime);
         time += deltaTime;

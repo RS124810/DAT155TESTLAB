@@ -7,12 +7,6 @@ export default class CustomPhongMaterial extends THREE.ShaderMaterial {
 
   constructor({
     color = 0xffffff, map = null,
-
-                warpSpeed = 1.0,
-                translationIntensity = 1.0,
-                rotationIntensity = 1.0,
-                verticalWarp = 1.0,
-                horizontalWarp = 1.0,
   } = {}) {
 
     // Setup our uniforms object:
@@ -24,6 +18,11 @@ export default class CustomPhongMaterial extends THREE.ShaderMaterial {
       {
         // custom uniforms:
         time: { value: 0.0 },
+        warpSpeed: { value: 1.0 },
+        translationIntensity: { value: 1.0 },
+        rotationIntensity: { value: 1.0 },
+        verticalWarp: { value: 1.0 },
+        horizontalWarp: { value: 1.0 },
       },
     ]);
     uniforms.diffuse.value.setHex(color);
@@ -35,15 +34,8 @@ export default class CustomPhongMaterial extends THREE.ShaderMaterial {
       lights: true,
     });
 
-    this.warpSpeed = this.toFloatString(warpSpeed);
-    this.translationIntensity = this.toFloatString(translationIntensity);
-    this.rotationIntensity = this.toFloatString(rotationIntensity);
-    this.verticalWarp = this.toFloatString(verticalWarp);
-    this.horizontalWarp = this.toFloatString(horizontalWarp);
     this.vertexShader = this.VERTEX_SHADER();
   }
-
-  toFloatString(n) {return (Number.isInteger(n)) ? (n + ".0") : (n.toString())}
 
   VERTEX_SHADER() { return glsl`
 #define PHONG
@@ -63,6 +55,11 @@ varying vec3 vViewPosition;
 #include <clipping_planes_pars_vertex>
 
 uniform float time;
+uniform float warpSpeed;
+uniform float translationIntensity;
+uniform float rotationIntensity;
+uniform float horizontalWarp;
+uniform float verticalWarp;
 
 void main() {
 	#include <uv_vertex>
@@ -76,12 +73,6 @@ void main() {
 	#include <defaultnormal_vertex>
 	#include <normal_vertex>
 	#include <begin_vertex>
-	
-	float warpSpeed = ${this.warpSpeed};
-	float translationIntensity = ${this.translationIntensity};
-	float rotationIntensity = ${this.rotationIntensity};
-	float horizontalWarp = ${this.horizontalWarp};
-	float verticalWarp = ${this.verticalWarp};
 	
 	vec4 worldPos = vec4( transformed, 1.0 );
 	worldPos = modelMatrix * worldPos;

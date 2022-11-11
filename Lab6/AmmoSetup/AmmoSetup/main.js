@@ -22,6 +22,7 @@ let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
 const textureLoader = new THREE.TextureLoader();
 let roadBaseColor;
+let roadBaseStripColor;
 let roadNormalMap;
 let roadDispMap;
 let roadRoughMap;
@@ -89,6 +90,11 @@ function loadTexture() {
     roadBaseColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadBaseColor.offset.set( 0, 0 );
     roadBaseColor.repeat.set( 64, 2 );
+
+    roadBaseStripColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
+    roadBaseStripColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadBaseStripColor.offset.set( 0, 0 );
+    roadBaseStripColor.repeat.set( 64, 0.1 );
 
     roadNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_NRM.jpg');
     roadNormalMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
@@ -722,6 +728,7 @@ function createRoad(){
 
     const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
     const roadStripMaterial = new THREE.MeshStandardMaterial({
+        map: roadBaseStripColor,
         color: 0xFFFFFF,
         normalmap: roadNormalMap,
         displacementmap: roadDispMap,

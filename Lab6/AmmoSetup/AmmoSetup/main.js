@@ -3,7 +3,6 @@ import * as LOADER from 'Loader';
 import  * as Controls from 'Control';
 
 import {VRButton} from '../three/build/VRButton.js';
-//import * as SkeletonUtils from "../three/examples/jsm/utils/SkeletonUtils.js";
 import {getHeightmapData} from "../three/build/utils.js";
 import CustomTextureSplattingMaterial from "./CustomTextureSplattingMaterial.js";
 import TextureSplattingMaterial from "../three/build/TextureSplattingMaterial.js";
@@ -22,9 +21,24 @@ let dynamicObjects = [];
 let staticObjects = [];
 let colGroupCube = 1, colGroupGround = 2, colGroupSphere = 4;
 const loader = new LOADER.GLTFLoader();
-let Rock;
+const textureLoader = new THREE.TextureLoader();
+let roadBaseColor;
+let roadBaseStripColor;
+let roadNormalMap;
+let roadDispMap;
+let roadRoughMap;
+let roadAOM;
+
+let terrainBaseColor;
+let terrainNormalMap;
+let terrainDispMap;
+let terrainRoughMap;
+let terrainAOM;
+
 let RockGeometry;
 let RockMaterial;
+let RockGeometry2;
+let RockMaterial2;
 let RockMesh = [];
 let counter = 0;
 let carRigidBody;
@@ -33,7 +47,16 @@ const STATE = { DISABLE_DEACTIVATION : 4 }
 
 let TreeGeometry;
 let TreeMaterial;
+let LeafGeometry;
+let LeafMaterial;
 let ThreeMesh = [];
+
+let CarGeometry
+let CarMaterial;
+let TireGeometry;
+let TireMaterial;
+let LightGeometry;
+let LightMaterial;
 
 let time = 0;
 let objectTimePeriod = 0.2;
@@ -69,13 +92,54 @@ export function start() {
     setupSkybox();
     setupTerrain();
     setupControls();
+    loadTexture();
     loadRock();
     loadTree();
+    loadCar();
     createRoad();
     createCar();
     animate();
 }
 
+function loadTexture() {
+    roadBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
+    roadBaseColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadBaseColor.offset.set( 0, 0 );
+    roadBaseColor.repeat.set( 64, 2 );
+
+    roadBaseStripColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
+    roadBaseStripColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadBaseStripColor.offset.set( 0, 0 );
+    roadBaseStripColor.repeat.set( 64, 0.1 );
+
+    roadNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_NRM.jpg');
+    roadNormalMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadNormalMap.offset.set( 0, 0 );
+    roadNormalMap.repeat.set( 64, 2 );
+
+    roadDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_DISP.png');
+    roadDispMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadDispMap.offset.set( 0, 0 );
+    roadDispMap.repeat.set( 64, 2 );
+
+    roadRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_ROUGH.jpg');
+    roadRoughMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadRoughMap.offset.set( 0, 0 );
+    roadRoughMap.repeat.set( 64, 2 );
+
+    roadAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_OCC.jpg');
+    roadAOM.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
+    roadAOM.offset.set( 0, 0 );
+    roadAOM.repeat.set( 64, 2 );
+
+    terrainBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_basecolor.jpg');
+   // terrainBaseColor.repeat.set(1/Math.pow(2,128), 1/Math.pow(2,128));
+    terrainNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_normal.jpg');
+    terrainDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_height.png');
+    terrainRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_roughness.jpg');
+    terrainAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_ambientOcclusion.jpg');
+
+}
 //setup graphics, scene, renderer, camera, vr
 function setupGraphics() {
     scene = new THREE.Scene();
@@ -89,18 +153,18 @@ function setupGraphics() {
 
     document.body.append(VRButton.createButton(renderer));
     renderer.xr.enabled = true;
+
     //OrbitControl (camera) start pos
     camera.position.z = 14;
     camera.position.y = 0.9;
     camera.position.x = -32;
-
 
     camera.add(listener);
     listener.setMasterVolume(0);
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    //cameraGroup.position.set(-30, -0.5, 15);
+    cameraGroup.position.set(0, -1.5, 0);
     cameraGroup.rotation.y = Math.PI;
 
     renderer.xr.addEventListener('sessionstart', function () {
@@ -118,14 +182,11 @@ function setupControls(){
 }
 
 function setupLights() {
-    let hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-    hemiLight.position.set( 0, 300, 0 );
-    //scene.add( hemiLight );
 
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
     scene.add( light );
-    light.position.set(-10, 100, -50);
+    light.position.set(-27, 100, 40);
     light.castShadow = false;
     //Set up shadow properties for the light
     light.shadow.mapSize.width = 4096; // default
@@ -133,7 +194,6 @@ function setupLights() {
     light.shadow.camera.near = 0.1; // default
     light.shadow.camera.far = 1000; // default
     light.shadow.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
 
     const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
     scene.add(ambientLight);
@@ -191,7 +251,7 @@ function SetSound(counter) {
         listener.setMasterVolume(listener.getMasterVolume() +0.008); //Float between 0 and 1
     }
     if (counter >= maxNumObjects && listener.getMasterVolume() > 0){
-        listener.setMasterVolume(listener.getMasterVolume() -0.0015); //Float between 0 and 1
+        listener.setMasterVolume(listener.getMasterVolume() -0.002); //Float between 0 and 1
     }
 }
 
@@ -230,15 +290,40 @@ function loadRock()
 {
     loader.load(
         // resource URL
-        '../Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
+        '../Lab6/AmmoSetup/three/build/models/Rock1Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
-            //Rock = model;
-            console.log(model)
-            console.log(model.children[0].geometry);
+
+            console.log("Rock data = ");
+            console.log(model.children[0])
+
             RockGeometry = model.children[0].geometry;
             RockMaterial = model.children[0].material;
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
+    loader.load(
+        // resource URL
+        '../Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            const model2 = gltf.scene;
+
+            console.log("Rock data = ");
+            console.log(model2.children[0])
+
+            RockGeometry2 = model2.children[0].geometry;
+            RockMaterial2 = model2.children[0].material;
 
 
         },
@@ -262,8 +347,11 @@ function cloneRock() {
         });
         customUniforms.push(RockMaterial.uniforms);
     }
-    for (let i=0; i<maxNumObjects; i++){
+    for (let i=0; i<maxNumObjects; i+=2){
                RockMesh[i] = new THREE.Mesh (RockGeometry,RockMaterial);
+    }
+    for (let i=1; i<maxNumObjects; i+=2){
+        RockMesh[i] = new THREE.Mesh (RockGeometry2,RockMaterial2);
     }
 }
 
@@ -275,10 +363,12 @@ function loadTree()
         // called when the resource is loaded
         function ( gltf ) {
             const modeltree = gltf.scene;
-            //Rock = model;
-            console.log(modeltree.children[0].geometry);
+
+            console.log(modeltree.children[0].children[0].geometry);
             TreeGeometry = modeltree.children[0].geometry;
             TreeMaterial = modeltree.children[0].material;
+            LeafGeometry = modeltree.children[0].children[0].geometry;
+            LeafMaterial = modeltree.children[0].children[0].material;
 
 
         },
@@ -293,37 +383,67 @@ function loadTree()
     );
 }
 
-//Clones the model in an array to reuse our model
-//note this function crashes if called before model is 100% loaded
-function cloneTree() {
-    for (let i=0; i<maxNumTrees; i++){
-        // RockMesh[i] = SkeletonUtils.clone(Rock);
-        ThreeMesh[i] = new THREE.Mesh (TreeGeometry,TreeMaterial);
+function loadCar()
+{
+    loader.load(
+        // resource URL
+        '../Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
+        // called when the resource is loaded
+        function ( gltf ) {
+            const modelCar = gltf.scene;
+            console.log("Car data:");
+            console.log(modelCar.children[0].children[0].geometry);
+            console.log(modelCar.children[0].children[0].material);
 
-    }
+            CarGeometry = modelCar.children[0].children[0].geometry;
+            CarMaterial = modelCar.children[0].children[0].material;
+            TireGeometry = modelCar.children[1].children[0].geometry;
+            TireMaterial = modelCar.children[1].children[0].material;
+            LightGeometry = modelCar.children[2].children[0].geometry;
+            LightMaterial = modelCar.children[2].children[0].material;
+
+
+
+        },
+        // called while loading is progressing
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        // called when loading has errors
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
 }
 
 //Builds rocks, not cubes, from the array of models and add physics to them
-function setupCube(counter) {
+function setupRocks(counter) {
 
     //nr of different rock sizes
     const rockNrOfSizes = 5;
+    const RockMassScaler = 3000;
     //CUBE
-    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.2; // 0,2 scaled down rock size
+    let size =(Math.ceil( Math.random() * rockNrOfSizes ))*0.04; // 0,2 scaled down rock size
     //let hafeSize = size*1; //addjusting rigidbody to better fit real rock
 
     //THREE
-
-    console.log(counter)
+    function isOdd(num) { return num % 2;}
+    //console.log(isOdd(counter))
     //let Rocks = new THREE.Object3D();
 
     //picks model from array, apply scale and adds physics
     let Rocks = RockMesh[counter];
+    //black rocks
+    if (isOdd(counter) == 0) {
         Rocks.scale.set(size, size, size);
+    }else{
+        Rocks.scale.set(size*4, size*4, size*4);
+    }
 
             //AMMO
             //Math.random() * 128 - 64
-            let mass = size*1000;
+            let mass = size*RockMassScaler;
+            console.log("Stein " + (counter+1) + " veier " + mass + " kg")
             let boxPos = {x: Math.random() * 2  , y: 27, z: Math.random() * 1 + 3};
             let boxQuat = {x: 2, y: 0, z: 2, w: 1}; // Quat = rotate
 
@@ -334,9 +454,17 @@ function setupCube(counter) {
             let motionState = new Ammo.btDefaultMotionState(transform);
 
     //Manually scale new physic body from rocks
-    let geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
-    for (let i = 0; i < geo.length; i++){
+    let geo;
+    if (isOdd(counter) == 0) {
+        geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+        for (let i = 0; i < geo.length; i++){
         geo[i] = geo[i]*(size);
+        }
+    }else{
+        geo = new Float32Array (Rocks.geometry.getAttribute('position').array);
+        for (let i = 0; i < geo.length; i++){
+            geo[i] = geo[i]*(size*4)
+        }
     }
 
     // new empty ammo shape
@@ -422,7 +550,6 @@ function setupTerrain()
         const height = 40;
 
         const geometry = new TerrainGeometry(size, 128, height, terrainImage);
-
         const grass = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/grass.png');
         const rock = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/rock.png');
         const alphaMap = new THREE.TextureLoader().load('../Lab6/AmmoSetup/three/build/images/terrain.png');
@@ -453,7 +580,18 @@ function setupTerrain()
             });
         }
 
+        //new Terrain map
+        const terrainMaterial = new THREE.MeshStandardMaterial({
+                map: terrainBaseColor,
+                normalmap: terrainNormalMap,
+                displacementmap: terrainDispMap,
+                roughnessMap: terrainRoughMap,
+                aoMap: terrainAOM
+            }
+        );
+
         const terrain = new THREE.Mesh(geometry, textureSplattingMaterial);
+        terrain.receiveShadow = true;
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
         let heightScale = 1;
@@ -538,64 +676,29 @@ function setupTerrain()
     terrainImage.src = '../Lab6/AmmoSetup/three/build/images/terrain.png';
 }
 
-function setupGround(){
-
-    //GROUND
-    //THREE
-    const groundGeometry = new THREE.BoxGeometry( 60, 1, 280 );
-    const groundMaterial = new CustomPhongMaterial( { color: 0x5C4033 } );
-    const ground = new THREE.Mesh( groundGeometry, groundMaterial );
-
-    //AMMO
-    let mass = 0;
-    let groundPos = {x: -10, y: 14, z: 0};
-    let groundQuat = {x: 0, y: 0, z: 2, w: 1};
-
-    let transform = new Ammo.btTransform();
-    transform.setIdentity();
-    transform.setOrigin(new Ammo.btVector3(groundPos.x, groundPos.y, groundPos.z));
-    transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
-
-    let motionState = new Ammo.btDefaultMotionState(transform);
-    let groundShape = new Ammo.btBoxShape(new Ammo.btVector3(100, 0.5, 140));
-    groundShape.setMargin(0.05);
-    let localInertia = new Ammo.btVector3(0, 0, 0);
-    groundShape.calculateLocalInertia(mass, localInertia);
-    let rbInfo = new Ammo.btRigidBodyConstructionInfo(mass, motionState, groundShape, localInertia);
-    let groundRigidBody = new Ammo.btRigidBody(rbInfo);
-    groundRigidBody.setRestitution(0.1);
-    groundRigidBody.setFriction(0.5);
-    physicsWorld.addRigidBody(groundRigidBody, colGroupGround, colGroupCube);
-
-    ground.receiveShadow = false;
-    staticObjects.push(ground);
-    scene.add( ground );
-    ground.userData.physicsBody = groundRigidBody;
-}
-
-
 //Spawn Trees
 function Trees (){
 
     let radius = 0.05;
     let height = 2;
     //THREE
-    const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
-    let treeMaterial;
-    if (USE_CUSTOM_SHADERS) {
-        treeMaterial = new CustomPhongMaterial( {
-            color: 0x331800,
-        } );
-        customUniforms.push(treeMaterial.uniforms);
-    } else {
-        treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
-    }
+   // const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
+    //const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
+    let tree = new THREE.Group();
+    let treeS = new THREE.Mesh( TreeGeometry, TreeMaterial )
+    treeS.castShadow = true;
+    let treeL = new THREE.Mesh( LeafGeometry, LeafMaterial )
+    treeL.castShadow = true;
+    tree.add(treeS);
+    tree.add(treeL);
+    //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
+    console.log(tree);
+    tree.scale.set(0.7 , 0.7, 0.7)
 
-    const tree = new THREE.Mesh( treeGeometry, treeMaterial );
-
-    let mass = 1000;
+    //AMMO
+    let mass = 2000;
     //Math.random() * 128 - 64
-    let groundPos = {x: Math.random() * 10 -30, y: 1.2, z: Math.random() * 15 +5};
+    let groundPos = {x: Math.random() * 6 -26, y: 0.18, z: Math.random() * 18 +0};
     let groundQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -604,7 +707,7 @@ function Trees (){
     transform.setRotation(new Ammo.btQuaternion(groundQuat.x, groundQuat.y, groundQuat.z, groundQuat.w));
     let motionState = new Ammo.btDefaultMotionState(transform);
     //let Shape = new Ammo.btCylinderShape(new Ammo.btVector3(radius, height*0.5, radius));
-    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 1, 0.15));
+    let Shape = new Ammo.btBoxShape(new Ammo.btVector3(0.15, 0.25, 0.15));
     Shape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     Shape.calculateLocalInertia(mass, localInertia);
@@ -664,20 +767,40 @@ function updatePhysics(deltaTime) {
 function createRoad(){
 
     //THREE.JS
-    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1, 1000, 1000, 1000);
-    let roadMaterial;
-    if (USE_CUSTOM_SHADERS){
-        roadMaterial = new CustomPhongMaterial({
+    //const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
+    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 2,128,128,128);
+    const roadMaterial = new THREE.MeshStandardMaterial({
             color: 0x565656,
-        });
-        customUniforms.push(roadMaterial.uniforms);
-    } else {
-        roadMaterial = new THREE.MeshPhongMaterial({
-                color: 0x565656
-            }
-        );
-    }
+            map: roadBaseColor,
+            normalmap: roadNormalMap,
+            displacementmap: roadDispMap,
+            roughnessMap: roadRoughMap,
+            aoMap: roadAOM
+        }
+    );
+
+    const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
+    const roadStripMaterial = new THREE.MeshStandardMaterial({
+        map: roadBaseStripColor,
+        color: 0xFFFFFF,
+        normalmap: roadNormalMap,
+        displacementmap: roadDispMap,
+        roughnessMap: roadRoughMap,
+        aoMap: roadAOM
+    });
+
+    const roadStripMesh = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
+    const roadStripMesh2 = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
+
+    roadMesh.receiveShadow = true;
+
+    roadStripMesh.position.set(-26.2,0.001,0);
+    roadStripMesh.rotation.y = Math.PI/2;
+    scene.add(roadStripMesh);
+    roadStripMesh2.position.set(-27.8,0.001,0);
+    roadStripMesh2.rotation.y = Math.PI/2;
+    scene.add(roadStripMesh2);
     //roadMesh.position.set(-20, 0, 0);
     //roadMesh.rotation.y = Math.PI/2;
     //roadMesh.rotation.x = -Math.PI/2;
@@ -685,7 +808,7 @@ function createRoad(){
 
     //AMMO
     let mass = 0;
-    let roadMeshPos = {x: -20, y: 0, z: 0};
+    let roadMeshPos = {x: -27, y: 0, z: 0};
     let roadMeshQuat = {x: 0, y: 1, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -714,6 +837,7 @@ function moveCar(speed){
 
     let impulse = new Ammo.btVector3(0, 0, speed);
     carMesh.userData.physicsBody.setLinearVelocity(impulse);
+    console.log(carMesh.position.z)
 
 
 }
@@ -733,11 +857,15 @@ function createCar(){
      }
      carMesh = new THREE.Mesh(carGeometry, carMaterial);
 
+   // carMesh = new THREE.Group();
 
+    //carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
+   // carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
+    //carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
 
      //AMMO
-    let mass = 1;
-    let carMeshPos = {x: -20, y: 1, z: -20};
+    let mass = 100;
+    let carMeshPos = {x: -27, y: 1, z: -16};
     let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -761,14 +889,10 @@ function createCar(){
 
     carRigidBody.setActivationState( STATE.DISABLE_DEACTIVATION );
     carMesh.userData.physicsBody = carRigidBody;
-    console.log(carMesh.position);
+    //console.log(carMesh.position);
     carMesh.receiveShadow = false;
     staticObjects.push(carMesh);
     scene.add(carMesh);
-
-
-
-
 }
 
 function animate() {
@@ -777,17 +901,17 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-20.5){
-            moveCar(4);
-        }else if(carMesh.position.z >=1  && startAvalanche && carMesh.position.x >-20.5 && carMesh.position.z<15){
-            moveCar(4);
+        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-27.1){
+            moveCar(3.8);
+        }else if(carMesh.position.z >=-21  && startAvalanche && carMesh.position.x >-27.1 && carMesh.position.z<23.8){
+            moveCar(2);
         }
 
         let deltaTime = clock.getDelta();
 
         if (counter < maxNumObjects && time > timeNextSpawn && startAvalanche) {
 
-            setupCube(counter);
+            setupRocks(counter);
             counter++;
             timeNextSpawn = time + objectTimePeriod;
         }

@@ -169,7 +169,7 @@ const fragmentShader = (length) => {
   texture2D(alphaMaps[${i - 1}], vUv).r
 )`;
 
-      console.log(expression);
+     //console.log(expression);
 
   }
 

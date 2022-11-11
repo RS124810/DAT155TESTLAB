@@ -28,6 +28,12 @@ let roadDispMap;
 let roadRoughMap;
 let roadAOM;
 
+let terrainBaseColor;
+let terrainNormalMap;
+let terrainDispMap;
+let terrainRoughMap;
+let terrainAOM;
+
 let RockGeometry;
 let RockMaterial;
 let RockGeometry2;
@@ -115,6 +121,13 @@ function loadTexture() {
     roadAOM.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadAOM.offset.set( 0, 0 );
     roadAOM.repeat.set( 64, 2 );
+
+    terrainBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_basecolor.jpg');
+   // terrainBaseColor.repeat.set(1/Math.pow(2,128), 1/Math.pow(2,128));
+    terrainNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_normal.jpg');
+    terrainDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_height.png');
+    terrainRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_roughness.jpg');
+    terrainAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_ambientOcclusion.jpg');
 
 }
 //setup graphics, scene, renderer, camera, vr
@@ -540,8 +553,18 @@ function setupTerrain()
             colorMaps: [grass, rock],
             alphaMaps: [alphaMap],
         });
+        //new Terrain map
+        const terrainMaterial = new THREE.MeshStandardMaterial({
+             map: terrainBaseColor,
+             normalmap: terrainNormalMap,
+             displacementmap: terrainDispMap,
+             roughnessMap: terrainRoughMap,
+             aoMap: terrainAOM
+            }
+        );
 
         const terrain = new THREE.Mesh(geometry, material);
+        terrain.receiveShadow = true;
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
         let heightScale = 1;
@@ -614,9 +637,6 @@ function setupTerrain()
         let terrainRigidBody = new Ammo.btRigidBody(rbInfo);
         physicsWorld.addRigidBody(terrainRigidBody, colGroupGround, colGroupCube);
 
-        terrain.receiveShadow = false;
-
-
         terrain.userData.physicsBody = terrainRigidBody;
         staticObjects.push(terrain);
         scene.add(terrain);
@@ -635,13 +655,17 @@ function Trees (){
    // const treeGeometry = new THREE.CylinderGeometry(radius,radius,height,16,1);
     //const treeMaterial = new THREE.MeshPhongMaterial( { color: 0x331800  } );
     let tree = new THREE.Group();
-
-    tree.add(new THREE.Mesh( TreeGeometry, TreeMaterial ));
-    tree.add(new THREE.Mesh( LeafGeometry, LeafMaterial ));
+    let treeS = new THREE.Mesh( TreeGeometry, TreeMaterial )
+    treeS.castShadow = true;
+    let treeL = new THREE.Mesh( LeafGeometry, LeafMaterial )
+    treeL.castShadow = true;
+    tree.add(treeS);
+    tree.add(treeL);
     //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
     console.log(tree);
     tree.scale.set(0.7 , 0.7, 0.7)
-    tree.castShadow = true;
+
+    //AMMO
     let mass = 2000;
     //Math.random() * 128 - 64
     let groundPos = {x: Math.random() * 6 -26, y: 0.18, z: Math.random() * 18 +0};

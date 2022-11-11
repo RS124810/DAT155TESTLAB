@@ -489,7 +489,7 @@ function setupRocks(counter) {
 
             //work
             dynamicObjects.push(Rocks); //keep in dynamic objects array
-            Rocks.castShadow = false;
+            Rocks.castShadow = true;
             scene.add(Rocks);
             Rocks.userData.physicsBody = boxRigidBody;
 
@@ -538,11 +538,10 @@ function setupTerrain()
         const material = new TextureSplattingMaterial({
             color: THREE.Color.NAMES.white,
             colorMaps: [grass, rock],
-            alphaMaps: [alphaMap]
+            alphaMaps: [alphaMap],
         });
 
         const terrain = new THREE.Mesh(geometry, material);
-
 
         // This parameter is not really used, since we are using PHY_FLOAT height data type and hence it is ignored
         let heightScale = 1;
@@ -642,7 +641,7 @@ function Trees (){
     //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
     console.log(tree);
     tree.scale.set(0.7 , 0.7, 0.7)
-
+    tree.castShadow = true;
     let mass = 2000;
     //Math.random() * 128 - 64
     let groundPos = {x: Math.random() * 6 -26, y: 0.18, z: Math.random() * 18 +0};
@@ -739,6 +738,8 @@ function createRoad(){
     const roadStripMesh = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadStripMesh2 = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
+
+    roadMesh.receiveShadow = true;
 
     roadStripMesh.position.set(-26.2,0.001,0);
     roadStripMesh.rotation.y = Math.PI/2;

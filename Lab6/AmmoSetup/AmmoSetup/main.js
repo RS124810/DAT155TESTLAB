@@ -829,11 +829,12 @@ function createCar(){
     carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
     carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
     carMesh.children[0].castShadow = true;
+    carMesh.children[0].material.transparent = true;
 
      //AMMO
     let mass = 100;
     let carMeshPos = {x: -27, y: 0.5, z: -16};
-    let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
+    let carMeshQuat = {x: 0, y: 90, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
     transform.setIdentity();

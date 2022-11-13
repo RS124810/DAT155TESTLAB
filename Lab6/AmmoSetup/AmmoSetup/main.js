@@ -87,8 +87,8 @@ export function start() {
     loadTree();
     loadCar();
     createRoad();
-    createCar();
-    animate();
+   // createCar();
+    //animate();
 }
 
 function loadTexture() {
@@ -376,16 +376,20 @@ function loadCar()
         function ( gltf ) {
             const modelCar = gltf.scene;
             console.log("Car data:");
-            console.log(modelCar.children[0].children[0].geometry);
-            console.log(modelCar.children[0].children[0].material);
+            console.log(modelCar.children[0]);
+            console.log(modelCar.children[1]);
+            console.log(modelCar.children[2]);
 
-            CarGeometry = modelCar.children[0].children[0].geometry;
-            CarMaterial = modelCar.children[0].children[0].material;
-            TireGeometry = modelCar.children[1].children[0].geometry;
-            TireMaterial = modelCar.children[1].children[0].material;
-            LightGeometry = modelCar.children[2].children[0].geometry;
-            LightMaterial = modelCar.children[2].children[0].material;
 
+            CarGeometry = modelCar.children[0].geometry;
+            CarMaterial = modelCar.children[0].material;
+            LightGeometry = modelCar.children[1].geometry;
+            LightMaterial = modelCar.children[1].material;
+            TireGeometry = modelCar.children[2].geometry;
+            TireMaterial = modelCar.children[2].material;
+
+            createCar();
+            animate();
 
 
         },
@@ -813,21 +817,20 @@ function moveCar(speed){
 }
 function createCar(){
      //THREE
-     const carGeometry = new THREE.BoxGeometry(1,1,1);
-     const carMaterial = new THREE.MeshPhongMaterial({
-         color: 0xff0000
-     });
-     carMesh = new THREE.Mesh(carGeometry, carMaterial);
+    // const carGeometry = new THREE.BoxGeometry(1,1,1);
+    // const carMaterial = new THREE.MeshPhongMaterial({
+    //     color: 0xff0000
+    // });
+    // carMesh = new THREE.Mesh(CarGeometry, CarMaterial);
 
-   // carMesh = new THREE.Group();
-
-    //carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
-   // carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
-    //carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
-
+    carMesh = new THREE.Group();
+    carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
+    carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
+    carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
+    carMesh.children[0].castShadow = true;
      //AMMO
     let mass = 100;
-    let carMeshPos = {x: -27, y: 1, z: -16};
+    let carMeshPos = {x: -27, y: 2, z: -16};
     let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -837,7 +840,7 @@ function createCar(){
 
     let motionState = new Ammo.btDefaultMotionState(transform);
 
-    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.5, 0.5));
+    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1));
     carShape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     carShape.calculateLocalInertia(mass, localInertia);

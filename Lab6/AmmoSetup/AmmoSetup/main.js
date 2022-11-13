@@ -60,7 +60,7 @@ let LightMaterial;
 let time = 0;
 let objectTimePeriod = 0.2;
 let timeNextSpawn = time + objectTimePeriod;
-const maxNumObjects = 60; //even nr
+const maxNumObjects = 60;
 
 let control;
 let startAvalanche = false;
@@ -154,7 +154,7 @@ function setupGraphics() {
 
     //this part can be used to set a suitable VR camera start pos
     const cameraGroup = new THREE.Group();
-    cameraGroup.position.set(0, -1.5, 0);
+    cameraGroup.position.set(0, -0.6, 1);
     cameraGroup.rotation.y = Math.PI;
 
     renderer.xr.addEventListener('sessionstart', function () {
@@ -666,7 +666,7 @@ function Trees (){
     tree.add(treeS);
     tree.add(treeL);
     //const tree = new THREE.Mesh( TreeGeometry, TreeMaterial );
-    console.log(tree);
+    //console.log(tree);
     tree.scale.set(0.7 , 0.7, 0.7)
 
     //AMMO
@@ -811,7 +811,7 @@ function moveCar(speed){
 
     let impulse = new Ammo.btVector3(0, 0, speed);
     carMesh.userData.physicsBody.setLinearVelocity(impulse);
-    console.log(carMesh.position.z)
+   //console.log(carMesh.position.x)
 
 
 }
@@ -824,13 +824,15 @@ function createCar(){
     // carMesh = new THREE.Mesh(CarGeometry, CarMaterial);
 
     carMesh = new THREE.Group();
+    carMesh.scale.set(0.3, 0.3,0.3);
     carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
     carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
     carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
     carMesh.children[0].castShadow = true;
+
      //AMMO
     let mass = 100;
-    let carMeshPos = {x: -27, y: 2, z: -16};
+    let carMeshPos = {x: -27, y: 0.5, z: -16};
     let carMeshQuat = {x: 0, y: 0, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -840,7 +842,7 @@ function createCar(){
 
     let motionState = new Ammo.btDefaultMotionState(transform);
 
-    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(1, 1, 1));
+    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.35, 0.5));
     carShape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     carShape.calculateLocalInertia(mass, localInertia);
@@ -866,9 +868,9 @@ function animate() {
     //requestAnimationFrame(animate);
     renderer.setAnimationLoop( function () {
 
-        if(carMesh.position.z < 1 && startAvalanche && carMesh.position.x >-27.1){
-            moveCar(3.8);
-        }else if(carMesh.position.z >=-21  && startAvalanche && carMesh.position.x >-27.1 && carMesh.position.z<23.8){
+        if(carMesh.position.z < 18 && startAvalanche && carMesh.position.x >-27.05){
+            moveCar(3.3);
+        }else if(carMesh.position.z >=-21  && startAvalanche && carMesh.position.x >-27.05 && carMesh.position.z<23.8){
             moveCar(2);
         }
 

@@ -841,7 +841,7 @@ function createCar(){
 
     let motionState = new Ammo.btDefaultMotionState(transform);
 
-    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.5, 0.35, 0.5));
+    let carShape = new Ammo.btBoxShape(new Ammo.btVector3(0.4, 0.35, 0.7));
     carShape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     carShape.calculateLocalInertia(mass, localInertia);

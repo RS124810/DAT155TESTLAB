@@ -85,9 +85,7 @@ export function start() {
     loadTexture();
     loadRock();
     loadTree();
-    loadCar();
     createRoad();
-   // createCar();
     //animate();
 }
 
@@ -367,7 +365,7 @@ function loadTree()
     );
 }
 
-function loadCar()
+export function loadCar()
 {
     loader.load(
         // resource URL

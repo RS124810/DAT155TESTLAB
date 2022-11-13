@@ -70,10 +70,12 @@
 <script src="Lab6/AmmoSetup/ammo/ammo.js"></script>
 <script type="module">
   'use strict';
+  import {loadCar} from "./Lab6/AmmoSetup/AmmoSetup/main.js";
   import {start} from "./Lab6/AmmoSetup/AmmoSetup/main.js";
   import {activate} from "./Lab6/AmmoSetup/AmmoSetup/main.js";
   import {spawnTrees} from "./Lab6/AmmoSetup/AmmoSetup/main.js";
   await Ammo();
+  await loadCar();
   await start();
 
   let danger = document.getElementById("1");

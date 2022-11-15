@@ -369,7 +369,6 @@ function loadTree()
 
 export function loadCar()
 {
-    console.log("hei");
 
     loader.load(
         // resource URL

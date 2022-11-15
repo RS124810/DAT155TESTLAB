@@ -279,7 +279,7 @@ function loadRock()
 {
     loader.load(
         // resource URL
-        './Lab6/AmmoSetup/three/build/models/Rock1Complete.glb',
+        '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/models/Rock1Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model = gltf.scene;
@@ -303,7 +303,7 @@ function loadRock()
     );
     loader.load(
         // resource URL
-        './Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
+        '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/models/Rock2Complete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const model2 = gltf.scene;
@@ -342,7 +342,7 @@ function loadTree()
 {
     loader.load(
         // resource URL
-        './Lab6/AmmoSetup/three/build/models/TreeTexturedComplete.glb',
+        '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/models/TreeTexturedComplete.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const modeltree = gltf.scene;

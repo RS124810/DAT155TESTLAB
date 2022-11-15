@@ -370,7 +370,7 @@ export function loadCar()
 {
     loader.load(
         // resource URL
-        './Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
+        '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const modelCar = gltf.scene;

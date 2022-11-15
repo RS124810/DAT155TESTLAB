@@ -557,15 +557,16 @@ function setupTerrain()
             alphaMaps: [alphaMap],
         });
         //new Terrain map
+        /*
         const terrainMaterial = new THREE.MeshStandardMaterial({
              map: terrainBaseColor,
-             normalmap: terrainNormalMap,
-             displacementmap: terrainDispMap,
+             normalMap: terrainNormalMap,
+             displacementMap: terrainDispMap,
              roughnessMap: terrainRoughMap,
              aoMap: terrainAOM
             }
         );
-
+        */
         const terrain = new THREE.Mesh(geometry, material);
         terrain.receiveShadow = true;
 

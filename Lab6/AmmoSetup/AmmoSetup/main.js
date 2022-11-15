@@ -93,7 +93,7 @@ function loadTexture() {
     roadBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
     roadBaseColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadBaseColor.offset.set( 0, 0 );
-    roadBaseColor.repeat.set( 64, 2 );
+    roadBaseColor.repeat.set( 32, 1 );
 
     roadBaseStripColor = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_COLOR.jpg');
     roadBaseStripColor.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
@@ -103,30 +103,30 @@ function loadTexture() {
     roadNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_NRM.jpg');
     roadNormalMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadNormalMap.offset.set( 0, 0 );
-    roadNormalMap.repeat.set( 64, 2 );
+    roadNormalMap.repeat.set( 32, 1 );
 
     roadDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_DISP.png');
     roadDispMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadDispMap.offset.set( 0, 0 );
-    roadDispMap.repeat.set( 64, 2 );
+    roadDispMap.repeat.set( 32, 1 );
 
     roadRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_ROUGH.jpg');
     roadRoughMap.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadRoughMap.offset.set( 0, 0 );
-    roadRoughMap.repeat.set( 64, 2 );
+    roadRoughMap.repeat.set( 32, 1 );
 
     roadAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/RoadTexture/Asphalt_006_OCC.jpg');
     roadAOM.wrapS = roadBaseColor.wrapT = THREE.RepeatWrapping;
     roadAOM.offset.set( 0, 0 );
-    roadAOM.repeat.set( 64, 2 );
+    roadAOM.repeat.set( 32, 1 );
 
-    terrainBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_basecolor.jpg');
+   /* terrainBaseColor = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_basecolor.jpg');
    // terrainBaseColor.repeat.set(1/Math.pow(2,128), 1/Math.pow(2,128));
     terrainNormalMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_normal.jpg');
     terrainDispMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_height.png');
     terrainRoughMap = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_roughness.jpg');
     terrainAOM = textureLoader.load('../Lab6/AmmoSetup/three/build/Terrain/Rock_Moss_001_ambientOcclusion.jpg');
-
+*/
 }
 //setup graphics, scene, renderer, camera, vr
 function setupGraphics() {
@@ -166,6 +166,7 @@ function setupGraphics() {
 function setupControls(){
 
     control = new Controls.OrbitControls(camera, renderer.domElement );
+    //control.target.set(0,0,-40)
     scene.add(camera);
 }
 
@@ -174,7 +175,7 @@ function setupLights() {
     let light = new THREE.DirectionalLight( 0xFFFFFF );
 
     scene.add( light );
-    light.position.set(-27, 100, 40);
+    light.position.set(-27, 100, -40);
     light.castShadow = true;
     //Set up shadow properties for the light
     light.shadow.mapSize.width = 4096; // default
@@ -227,7 +228,7 @@ function setupSkybox() {
         skyboxMaterial[i].side = THREE.BackSide;
     }
 
-    let boxGeometry = new THREE.BoxGeometry(128,128,128);
+    let boxGeometry = new THREE.BoxGeometry(256,256,256);
     let skybox = new THREE.Mesh(boxGeometry, skyboxMaterial);
 
     scene.add(skybox);
@@ -740,32 +741,46 @@ function createRoad(){
 
     //THREE.JS
     //const roadGeometry = new THREE.BoxGeometry(64, 0.1, 1);
-    const roadGeometry = new THREE.BoxGeometry(64, 0.1, 2,128,128,128);
+    const roadGeometry = new THREE.BoxGeometry(64, 2, 2,128,128,128);
     const roadMaterial = new THREE.MeshStandardMaterial({
             color: 0x565656,
             map: roadBaseColor,
-            normalmap: roadNormalMap,
-            displacementmap: roadDispMap,
+           // normalMap: roadNormalMap,
+            //displacementMap: roadDispMap,
+            //displacementScale: 0.05,
+            bumpMap: roadDispMap,
+            bumpScale: 0.2,
             roughnessMap: roadRoughMap,
-            aoMap: roadAOM
+            roughness: 0.5,
+
         }
     );
+
 
     const roadStripGeometry = new THREE.BoxGeometry(64, 0.1, 0.1,128,128,128);
     const roadStripMaterial = new THREE.MeshStandardMaterial({
         map: roadBaseStripColor,
         color: 0xFFFFFF,
-        normalmap: roadNormalMap,
-        displacementmap: roadDispMap,
+       //normalMap: roadNormalMap,
+        bumpMap: roadDispMap,
+        bumpScale: 0.1,
+       //displacementScale: 0.05,
         roughnessMap: roadRoughMap,
-        aoMap: roadAOM
+       // aoMap: roadAOM
     });
 
     const roadStripMesh = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadStripMesh2 = new THREE.Mesh(roadStripGeometry,roadStripMaterial)
     const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
 
+    //second set of uv's for ambient occlusion map
+    roadMesh.geometry.attributes.uv2 = roadMesh.geometry.attributes.uv;
+
+    console.log(roadMesh);
+
     roadMesh.receiveShadow = true;
+    roadStripMesh.receiveShadow = true;
+    roadStripMesh2.receiveShadow = true;
 
     roadStripMesh.position.set(-26.2,0.001,0);
     roadStripMesh.rotation.y = Math.PI/2;
@@ -780,7 +795,7 @@ function createRoad(){
 
     //AMMO
     let mass = 0;
-    let roadMeshPos = {x: -27, y: 0, z: 0};
+    let roadMeshPos = {x: -27, y: -0.95, z: 0};
     let roadMeshQuat = {x: 0, y: 1, z: 0, w: 1};
 
     let transform = new Ammo.btTransform();
@@ -790,7 +805,7 @@ function createRoad(){
 
     let motionState = new Ammo.btDefaultMotionState(transform);
 
-    let roadShape = new Ammo.btBoxShape(new Ammo.btVector3(32, 0.05, 0.5));
+    let roadShape = new Ammo.btBoxShape(new Ammo.btVector3(32, 1, 1));
     roadShape.setMargin(0.05);
     let localInertia = new Ammo.btVector3(0, 0, 0);
     roadShape.calculateLocalInertia(mass, localInertia);

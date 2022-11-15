@@ -62,7 +62,7 @@ import {
 	Vector3,
 	VectorKeyframeTrack,
 	sRGBEncoding
-} from '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/three.module.js';
+} from 'three';
 
 class GLTFLoader extends Loader {
 

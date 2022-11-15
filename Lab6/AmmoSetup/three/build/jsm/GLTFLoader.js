@@ -206,8 +206,7 @@ class GLTFLoader extends Loader {
 		loader.setWithCredentials( this.withCredentials );
 
 		loader.load( url, function ( data ) {
-			console.log("loader url")
-			console.log(url)
+		
 			try {
 
 				scope.parse( data, resourcePath, function ( gltf ) {

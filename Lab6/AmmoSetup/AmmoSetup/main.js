@@ -347,7 +347,7 @@ function loadTree()
         function ( gltf ) {
             const modeltree = gltf.scene;
 
-            console.log(modeltree.children[0].children[0].geometry);
+            //console.log(modeltree.children[0].children[0].geometry);
             TreeGeometry = modeltree.children[0].geometry;
             TreeMaterial = modeltree.children[0].material;
             LeafGeometry = modeltree.children[0].children[0].geometry;
@@ -368,16 +368,17 @@ function loadTree()
 
 export function loadCar()
 {
+    console.log("hei");
     loader.load(
         // resource URL
-        '/DAT155TESTLAB/Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
+        './Lab6/AmmoSetup/three/build/models/SimpleCar.glb',
         // called when the resource is loaded
         function ( gltf ) {
             const modelCar = gltf.scene;
-            console.log("Car data:");
-            console.log(modelCar.children[0]);
-            console.log(modelCar.children[1]);
-            console.log(modelCar.children[2]);
+           //console.log("Car data:");
+           //console.log(modelCar.children[0]);
+           //console.log(modelCar.children[1]);
+           //console.log(modelCar.children[2]);
 
 
             CarGeometry = modelCar.children[0].geometry;
@@ -777,7 +778,7 @@ function createRoad(){
     //second set of uv's for ambient occlusion map
     roadMesh.geometry.attributes.uv2 = roadMesh.geometry.attributes.uv;
 
-    console.log(roadMesh);
+    //console.log(roadMesh);
 
     roadMesh.receiveShadow = true;
     roadStripMesh.receiveShadow = true;

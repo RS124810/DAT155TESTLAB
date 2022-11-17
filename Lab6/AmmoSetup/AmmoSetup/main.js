@@ -839,8 +839,10 @@ function createCar(){
     carMesh = new THREE.Group();
     carMesh.scale.set(0.3, 0.3,0.3);
     let chasisMesh = new THREE.Mesh( CarGeometry, CarMaterial );
+    chasisMesh.material.format = THREE.RGBAFormat;
     chasisMesh.material.transparent = true;
     chasisMesh.castShadow = true;
+    chasisMesh.renderOrder = 1;
     let lightMesh = new THREE.Mesh( LightGeometry, LightMaterial );
     let tireMesh = new THREE.Mesh( TireGeometry, TireMaterial );
 

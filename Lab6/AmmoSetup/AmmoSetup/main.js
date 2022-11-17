@@ -838,11 +838,15 @@ function createCar(){
 
     carMesh = new THREE.Group();
     carMesh.scale.set(0.3, 0.3,0.3);
-    carMesh.add(new THREE.Mesh( CarGeometry, CarMaterial ));
-    carMesh.add(new THREE.Mesh( LightGeometry, LightMaterial ));
-    carMesh.add(new THREE.Mesh( TireGeometry, TireMaterial ));
-    carMesh.children[0].castShadow = true;
-    carMesh.children[0].material.transparent = true;
+    let chasisMesh = new THREE.Mesh( CarGeometry, CarMaterial );
+    chasisMesh.material.transparent = true;
+    chasisMesh.castShadow = true;
+    let lightMesh = new THREE.Mesh( LightGeometry, LightMaterial );
+    let tireMesh = new THREE.Mesh( TireGeometry, TireMaterial );
+
+    carMesh.add(chasisMesh);
+    carMesh.add(lightMesh);
+    carMesh.add(tireMesh);
 
      //AMMO
     let mass = 100;

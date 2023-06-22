@@ -1,3 +1,5 @@
 # DAT155TESTLAB
-Test for lab 06
-Selve oppgaven ligger i lab06
+Test simulatoren her https://rs124810.github.io/DAT155TESTLAB/ </br>
+
+Selve oppgaven og skriptet ligger i lab06 </br>
+Lab6/AmmoSetup/AmmoSetup/main.js

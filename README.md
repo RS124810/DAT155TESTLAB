@@ -1,6 +1,7 @@
 # DAT155TESTLAB
 Test simulatoren her https://rs124810.github.io/DAT155TESTLAB/ </br>
-NB! Programmet er laget for Chrome, virker ikke i Safari </br>
+
+${\color{red}Obs!}$ Programmet er laget for Chrome og fungerer desverre ${\color{red}ikke}$ i Safari
 
 Dersom du ser </br>
 ![image](https://github.com/RS124810/DAT155TESTLAB/assets/69851083/e3f5a01b-c02a-4c9c-85c9-8b551aa3e359) </br>
